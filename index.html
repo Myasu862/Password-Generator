@@ -3,167 +3,232 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>パスワード生成ツール</title>
+    <title>パスワードジェネレーター</title>
     <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --container-bg: #ffffff;
+            --text-color: #333333;
+            --accent-color: #007bff;
+            --accent-hover: #0056b3;
+            --result-bg: #e9ecef;
+            --border-color: #dee2e6;
+            --shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --container-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --accent-color: #bb86fc;
+            --accent-hover: #9b65de;
+            --result-bg: #2d2d2d;
+            --border-color: #404040;
+            --shadow: 0 8px 30px rgba(0,0,0,0.5);
+        }
+
         body {
-            font-family: "Helvetica Neue", Arial, sans-serif;
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: #f0f2f5;
+            background-color: var(--bg-color);
             margin: 0;
-            color: #333;
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
         }
+
         .container {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            background: var(--container-bg);
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
             width: 90%;
-            max-width: 400px;
+            max-width: 420px;
+            transition: background-color 0.3s, box-shadow 0.3s;
         }
-        h2 { margin-top: 0; text-align: center; font-size: 1.5rem; }
-        
-        /* 結果表示エリア */
-        .result-wrapper {
-            position: relative;
-            margin-bottom: 10px;
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
         }
-        .result-box {
-            background: #e9ecef;
-            padding: 15px;
-            padding-right: 50px;
-            font-family: "Consolas", "Monaco", monospace;
-            font-size: 1.1rem;
-            border-radius: 6px;
-            word-break: break-all;
-            min-height: 24px;
-            border: 1px solid #ced4da;
+
+        h2 { margin: 0; font-size: 1.4rem; font-weight: 700; }
+
+        /* テーマ切替スイッチ */
+        .theme-toggle {
+            background: none;
+            border: 2px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: 20px;
+            padding: 5px 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
             display: flex;
             align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+            font-family: inherit;
         }
+        .theme-toggle:hover { border-color: var(--accent-color); }
+
+        .result-wrapper { position: relative; margin-bottom: 15px; }
         
+        .result-box {
+            background: var(--result-bg);
+            padding: 16px;
+            padding-right: 50px;
+            font-family: "SF Mono", "Consolas", "Monaco", monospace;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            word-break: break-all;
+            min-height: 28px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            color: var(--accent-color);
+            font-weight: bold;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
         .copy-btn {
             position: absolute;
-            right: 5px;
+            right: 8px;
             top: 50%;
             transform: translateY(-50%);
             background: transparent;
             border: none;
             cursor: pointer;
             padding: 8px;
-            border-radius: 4px;
+            border-radius: 6px;
             font-size: 1.2rem;
+            color: var(--text-color);
             transition: background 0.2s;
         }
-        .copy-btn:hover { background-color: #dbe0e5; }
+        .copy-btn:hover { background-color: rgba(128,128,128,0.2); }
+
         .copy-message {
             position: absolute;
-            top: -25px;
+            top: -35px;
             right: 0;
-            background: #333;
-            color: white;
-            padding: 4px 8px;
+            background: var(--accent-color);
+            color: #fff;
+            padding: 6px 12px;
             border-radius: 4px;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
+            font-weight: bold;
             opacity: 0;
-            transition: opacity 0.3s;
+            transform: translateY(10px);
+            transition: all 0.3s;
             pointer-events: none;
+            white-space: nowrap;
         }
-        .copy-message.show { opacity: 1; }
+        .copy-message.show { opacity: 1; transform: translateY(0); }
 
         /* 強度メーター */
-        .strength-container {
-            margin-bottom: 20px;
-        }
+        .strength-container { margin-bottom: 25px; }
         .strength-bar-bg {
             height: 6px;
-            background-color: #e0e0e0;
+            background-color: var(--border-color);
             border-radius: 3px;
             overflow: hidden;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
         }
-        .strength-bar-fill {
-            height: 100%;
-            width: 0%;
-            transition: width 0.3s ease, background-color 0.3s ease;
-        }
-        .strength-text {
-            font-size: 0.85rem;
-            text-align: right;
-            font-weight: bold;
-        }
+        .strength-bar-fill { height: 100%; width: 0%; transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.4s; }
+        .strength-text { font-size: 0.85rem; text-align: right; font-weight: 600; opacity: 0.9; }
 
         /* 設定エリア */
-        .settings { margin-bottom: 20px; }
+        .settings { display: grid; gap: 12px; margin-bottom: 25px; }
         .setting-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
-            padding: 5px 0;
-            border-bottom: 1px solid #eee;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
         }
         .setting-item:last-child { border-bottom: none; }
         
+        label { cursor: pointer; font-size: 0.95rem; }
+        
         input[type="number"] {
-            padding: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 6px;
+            background: var(--bg-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
             width: 60px;
             text-align: center;
+            font-weight: bold;
         }
+        input[type="checkbox"] { transform: scale(1.2); cursor: pointer; accent-color: var(--accent-color); }
 
         .generate-btn {
             width: 100%;
-            padding: 12px;
-            background-color: #007bff;
-            color: white;
+            padding: 14px;
+            background-color: var(--accent-color);
+            color: #ffffff;
             border: none;
-            border-radius: 6px;
-            font-size: 1rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
             font-weight: bold;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: transform 0.1s, filter 0.2s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-family: inherit;
         }
-        .generate-btn:hover { background-color: #0056b3; }
+        .generate-btn:hover { filter: brightness(1.1); }
+        .generate-btn:active { transform: scale(0.98); }
+
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>パスワード生成</h2>
+    <div class="header">
+        <h2>パスワード生成</h2>
+        <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙 ダーク</button>
+    </div>
     
     <div class="result-wrapper">
         <div class="result-box" id="passwordDisplay"></div>
-        <button class="copy-btn" onclick="copyPassword()" title="コピー">📋</button>
-        <div class="copy-message" id="copyMsg">コピーしました!</div>
+        <button class="copy-btn" onclick="copyPassword()" title="クリップボードにコピー">📋</button>
+        <div class="copy-message" id="copyMsg">コピーしました！</div>
     </div>
 
     <div class="strength-container">
         <div class="strength-bar-bg">
             <div class="strength-bar-fill" id="strengthBar"></div>
         </div>
-        <div class="strength-text" id="strengthText">強度判定</div>
+        <div class="strength-text" id="strengthText">計算中...</div>
     </div>
 
     <div class="settings">
         <div class="setting-item">
             <label for="length">文字数 (4-128)</label>
-            <input type="number" id="length" value="16" min="4" max="128">
+            <input type="number" id="length" value="16" min="4" max="128" onchange="saveSettings()">
         </div>
         <div class="setting-item">
-            <label for="includeUppercase">大文字 (A-Z)</label>
-            <input type="checkbox" id="includeUppercase" checked>
+            <label for="useUpper">大文字 (A-Z)</label>
+            <input type="checkbox" id="useUpper" checked onchange="saveSettings()">
         </div>
         <div class="setting-item">
-            <label for="includeNumbers">数字 (0-9)</label>
-            <input type="checkbox" id="includeNumbers" checked>
+            <label for="useNumbers">数字 (0-9)</label>
+            <input type="checkbox" id="useNumbers" checked onchange="saveSettings()">
         </div>
         <div class="setting-item">
-            <label for="includeSymbols">記号 (!-#$)</label>
-            <input type="checkbox" id="includeSymbols">
+            <label for="useSymbols">記号 (!-#$)</label>
+            <input type="checkbox" id="useSymbols" onchange="saveSettings()">
+        </div>
+        <div class="setting-item">
+            <label for="excludeAmbiguous" title="1, l, I, 0, O などを除外します">紛らわしい文字を除く</label>
+            <input type="checkbox" id="excludeAmbiguous" onchange="saveSettings()">
+        </div>
+        <div class="setting-item">
+            <label for="useHyphens" title="4文字ごとにハイフンを入れます">読みやすく区切る ( - )</label>
+            <input type="checkbox" id="useHyphens" onchange="saveSettings()">
         </div>
     </div>
 
@@ -171,27 +236,56 @@
 </div>
 
 <script>
-    window.onload = generatePassword;
+    window.onload = function() {
+        loadSettings();
+        generatePassword();
+    };
+
+    function toggleTheme() {
+        const body = document.body;
+        const btn = document.getElementById('themeBtn');
+        const isDark = body.getAttribute('data-theme') === 'dark';
+        
+        if (isDark) {
+            body.removeAttribute('data-theme');
+            btn.innerText = '🌙 ダーク';
+            localStorage.setItem('theme', 'light');
+        } else {
+            body.setAttribute('data-theme', 'dark');
+            btn.innerText = '☀️ ライト';
+            localStorage.setItem('theme', 'dark');
+        }
+    }
 
     function generatePassword() {
         const lengthInput = document.getElementById('length');
         let length = parseInt(lengthInput.value);
         if (length > 128) { length = 128; lengthInput.value = 128; }
         if (length < 4) { length = 4; lengthInput.value = 4; }
-        
-        const useUpper = document.getElementById('includeUppercase').checked;
-        const useNumbers = document.getElementById('includeNumbers').checked;
-        const useSymbols = document.getElementById('includeSymbols').checked;
+
+        const useUpper = document.getElementById('useUpper').checked;
+        const useNumbers = document.getElementById('useNumbers').checked;
+        const useSymbols = document.getElementById('useSymbols').checked;
+        const excludeAmbiguous = document.getElementById('excludeAmbiguous').checked;
+        const useHyphens = document.getElementById('useHyphens').checked;
 
         const lowerChars = 'abcdefghijklmnopqrstuvwxyz';
         const upperChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         const numberChars = '0123456789';
         const symbolChars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+        
+        const ambiguous = 'Il10O'; 
 
         let allowedChars = lowerChars;
         if (useUpper) allowedChars += upperChars;
         if (useNumbers) allowedChars += numberChars;
         if (useSymbols) allowedChars += symbolChars;
+
+        if (excludeAmbiguous) {
+            allowedChars = allowedChars.split('').filter(c => !ambiguous.includes(c)).join('');
+        }
+
+        if (allowedChars === '') allowedChars = lowerChars;
 
         let password = '';
         const randomValues = new Uint32Array(length);
@@ -202,60 +296,45 @@
             password += allowedChars[randomIndex];
         }
 
+        if (useHyphens) {
+            password = password.match(/.{1,4}/g).join('-');
+        }
+
         document.getElementById('passwordDisplay').innerText = password;
-        
-        // 生成後に強度を計算して表示
         evaluateStrength(length, allowedChars.length);
     }
 
-    // 強度判定ロジック（エントロピー計算）
     function evaluateStrength(length, poolSize) {
-        // エントロピー(bits) = 長さ * log2(文字種の数)
         const entropy = length * Math.log2(poolSize);
-        
         const bar = document.getElementById('strengthBar');
         const text = document.getElementById('strengthText');
         
-        let color = '#dc3545'; // 赤 (Weak)
-        let strengthLabel = '危険 😱';
-        let widthPercent = 0;
+        let color = '#dc3545';
+        let label = '危険';
+        let percent = 20;
 
-        // 判定基準 (Bit数)
-        if (entropy < 50) {
-            color = '#dc3545'; // 赤
-            strengthLabel = '危険 (短すぎる)';
-            widthPercent = 25;
-        } else if (entropy < 80) {
-            color = '#ffc107'; // 黄
-            strengthLabel = '普通 (まあまあ)';
-            widthPercent = 50;
-        } else if (entropy < 120) {
-            color = '#28a745'; // 緑
-            strengthLabel = '安全 (強力)';
-            widthPercent = 75;
+        if (entropy > 120) {
+            color = document.body.getAttribute('data-theme') === 'dark' ? '#bb86fc' : '#007bff';
+            label = '最強 (解読不能)';
+            percent = 100;
+        } else if (entropy > 80) {
+            color = '#28a745';
+            label = '安全 (強力)';
+            percent = 75;
+        } else if (entropy > 50) {
+            color = '#ffc107';
+            label = '普通 (まあまあ)';
+            percent = 50;
         } else {
-            color = '#007bff'; // 青
-            strengthLabel = '最強 (解読不能)';
-            widthPercent = 100;
+            label = '危険 (脆弱)';
         }
 
-        bar.style.width = widthPercent + '%';
+        bar.style.width = percent + '%';
         bar.style.backgroundColor = color;
-        text.innerText = `${strengthLabel} (${Math.floor(entropy)} bits)`;
+        text.innerText = `${label} / ${Math.floor(entropy)} bits`;
         text.style.color = color;
     }
 
     function copyPassword() {
         const password = document.getElementById('passwordDisplay').innerText;
         if (!password) return;
-        navigator.clipboard.writeText(password).then(() => {
-            const msg = document.getElementById('copyMsg');
-            msg.classList.add('show');
-            setTimeout(() => msg.classList.remove('show'), 2000);
-        });
-    }
-</script>
-
-</body>
-
-</html>
