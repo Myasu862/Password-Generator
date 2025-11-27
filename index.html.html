@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>パスワード生成ツール</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+            margin: 0;
+            color: #333;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 400px;
+        }
+        h2 { margin-top: 0; text-align: center; font-size: 1.5rem; }
+        
+        /* 結果表示エリア */
+        .result-wrapper {
+            position: relative;
+            margin-bottom: 10px;
+        }
+        .result-box {
+            background: #e9ecef;
+            padding: 15px;
+            padding-right: 50px;
+            font-family: "Consolas", "Monaco", monospace;
+            font-size: 1.1rem;
+            border-radius: 6px;
+            word-break: break-all;
+            min-height: 24px;
+            border: 1px solid #ced4da;
+            display: flex;
+            align-items: center;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 1.2rem;
+            transition: background 0.2s;
+        }
+        .copy-btn:hover { background-color: #dbe0e5; }
+        .copy-message {
+            position: absolute;
+            top: -25px;
+            right: 0;
+            background: #333;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .copy-message.show { opacity: 1; }
+
+        /* 強度メーター */
+        .strength-container {
+            margin-bottom: 20px;
+        }
+        .strength-bar-bg {
+            height: 6px;
+            background-color: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+        .strength-bar-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+        .strength-text {
+            font-size: 0.85rem;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        /* 設定エリア */
+        .settings { margin-bottom: 20px; }
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .setting-item:last-child { border-bottom: none; }
+        
+        input[type="number"] {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 60px;
+            text-align: center;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .generate-btn:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>パスワード生成</h2>
+    
+    <div class="result-wrapper">
+        <div class="result-box" id="passwordDisplay"></div>
+        <button class="copy-btn" onclick="copyPassword()" title="コピー">📋</button>
+        <div class="copy-message" id="copyMsg">コピーしました!</div>
+    </div>
+
+    <div class="strength-container">
+        <div class="strength-bar-bg">
+            <div class="strength-bar-fill" id="strengthBar"></div>
+        </div>
+        <div class="strength-text" id="strengthText">強度判定</div>
+    </div>
+
+    <div class="settings">
+        <div class="setting-item">
+            <label for="length">文字数 (4-128)</label>
+            <input type="number" id="length" value="16" min="4" max="128">
+        </div>
+        <div class="setting-item">
+            <label for="includeUppercase">大文字 (A-Z)</label>
+            <input type="checkbox" id="includeUppercase" checked>
+        </div>
+        <div class="setting-item">
+            <label for="includeNumbers">数字 (0-9)</label>
+            <input type="checkbox" id="includeNumbers" checked>
+        </div>
+        <div class="setting-item">
+            <label for="includeSymbols">記号 (!-#$)</label>
+            <input type="checkbox" id="includeSymbols">
+        </div>
+    </div>
+
+    <button class="generate-btn" onclick="generatePassword()">生成する</button>
+</div>
+
+<script>
+    window.onload = generatePassword;
+
+    function generatePassword() {
+        const lengthInput = document.getElementById('length');
+        let length = parseInt(lengthInput.value);
+        if (length > 128) { length = 128; lengthInput.value = 128; }
+        if (length < 4) { length = 4; lengthInput.value = 4; }
+        
+        const useUpper = document.getElementById('includeUppercase').checked;
+        const useNumbers = document.getElementById('includeNumbers').checked;
+        const useSymbols = document.getElementById('includeSymbols').checked;
+
+        const lowerChars = 'abcdefghijklmnopqrstuvwxyz';
+        const upperChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const numberChars = '0123456789';
+        const symbolChars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+
+        let allowedChars = lowerChars;
+        if (useUpper) allowedChars += upperChars;
+        if (useNumbers) allowedChars += numberChars;
+        if (useSymbols) allowedChars += symbolChars;
+
+        let password = '';
+        const randomValues = new Uint32Array(length);
+        window.crypto.getRandomValues(randomValues);
+
+        for (let i = 0; i < length; i++) {
+            const randomIndex = randomValues[i] % allowedChars.length;
+            password += allowedChars[randomIndex];
+        }
+
+        document.getElementById('passwordDisplay').innerText = password;
+        
+        // 生成後に強度を計算して表示
+        evaluateStrength(length, allowedChars.length);
+    }
+
+    // 強度判定ロジック（エントロピー計算）
+    function evaluateStrength(length, poolSize) {
+        // エントロピー(bits) = 長さ * log2(文字種の数)
+        const entropy = length * Math.log2(poolSize);
+        
+        const bar = document.getElementById('strengthBar');
+        const text = document.getElementById('strengthText');
+        
+        let color = '#dc3545'; // 赤 (Weak)
+        let strengthLabel = '危険 😱';
+        let widthPercent = 0;
+
+        // 判定基準 (Bit数)
+        if (entropy < 50) {
+            color = '#dc3545'; // 赤
+            strengthLabel = '危険 (短すぎる)';
+            widthPercent = 25;
+        } else if (entropy < 80) {
+            color = '#ffc107'; // 黄
+            strengthLabel = '普通 (まあまあ)';
+            widthPercent = 50;
+        } else if (entropy < 120) {
+            color = '#28a745'; // 緑
+            strengthLabel = '安全 (強力)';
+            widthPercent = 75;
+        } else {
+            color = '#007bff'; // 青
+            strengthLabel = '最強 (解読不能)';
+            widthPercent = 100;
+        }
+
+        bar.style.width = widthPercent + '%';
+        bar.style.backgroundColor = color;
+        text.innerText = `${strengthLabel} (${Math.floor(entropy)} bits)`;
+        text.style.color = color;
+    }
+
+    function copyPassword() {
+        const password = document.getElementById('passwordDisplay').innerText;
+        if (!password) return;
+        navigator.clipboard.writeText(password).then(() => {
+            const msg = document.getElementById('copyMsg');
+            msg.classList.add('show');
+            setTimeout(() => msg.classList.remove('show'), 2000);
+        });
+    }
+</script>
+
+</body>
+</html>
