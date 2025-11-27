@@ -81,7 +81,10 @@
             background: var(--result-bg);
             padding: 16px;
             padding-right: 50px;
+            /* 視認性の高いフォント設定を追加 */
             font-family: "SF Mono", "Consolas", "Monaco", monospace;
+            font-feature-settings: "zero"; /* 0にスラッシュを入れる */
+            font-variant-ligatures: none;
             font-size: 1.2rem;
             border-radius: 8px;
             word-break: break-all;
@@ -188,7 +191,7 @@
 
 <div class="container">
     <div class="header">
-        <h2>パスワード生成</h2>
+        <h2>パスワード生成 v2</h2>
         <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙 ダーク</button>
     </div>
     
@@ -223,7 +226,7 @@
             <input type="checkbox" id="useSymbols" onchange="saveSettings()">
         </div>
         <div class="setting-item">
-            <label for="excludeAmbiguous" title="1, l, I, 0, O などを除外します">紛らわしい文字を除く</label>
+            <label for="excludeAmbiguous" title="1, l, I, 0, O, o, z, 2, | などを除外します">紛らわしい文字を除く</label>
             <input type="checkbox" id="excludeAmbiguous" onchange="saveSettings()">
         </div>
         <div class="setting-item">
@@ -274,33 +277,76 @@
         const numberChars = '0123456789';
         const symbolChars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
         
-        const ambiguous = 'Il10O'; 
+        // 強化された「紛らわしい文字」リスト
+        const ambiguous = 'Il10OozZ2|'; 
 
-        let allowedChars = lowerChars;
-        if (useUpper) allowedChars += upperChars;
-        if (useNumbers) allowedChars += numberChars;
-        if (useSymbols) allowedChars += symbolChars;
+        // フィルタリング用ヘルパー関数
+        const filterChars = (chars) => excludeAmbiguous ? chars.split('').filter(c => !ambiguous.includes(c)).join('') : chars;
 
-        if (excludeAmbiguous) {
-            allowedChars = allowedChars.split('').filter(c => !ambiguous.includes(c)).join('');
+        // まず、小文字プールを作成
+        let allowedChars = filterChars(lowerChars);
+        
+        // 各種プールを作成し、結合する
+        // 同時に「最低1文字はこれを使う」ための強制プールも作る
+        let mandatoryPools = [];
+
+        if (useUpper) {
+            const filtered = filterChars(upperChars);
+            allowedChars += filtered;
+            if (filtered.length > 0) mandatoryPools.push(filtered);
+        }
+        if (useNumbers) {
+            const filtered = filterChars(numberChars);
+            allowedChars += filtered;
+            if (filtered.length > 0) mandatoryPools.push(filtered);
+        }
+        if (useSymbols) {
+            const filtered = filterChars(symbolChars);
+            allowedChars += filtered;
+            if (filtered.length > 0) mandatoryPools.push(filtered);
         }
 
+        // 何も選択されていない、またはフィルタで空になった場合の安全策
         if (allowedChars === '') allowedChars = lowerChars;
 
-        let password = '';
+        let passwordArray = [];
         const randomValues = new Uint32Array(length);
         window.crypto.getRandomValues(randomValues);
 
-        for (let i = 0; i < length; i++) {
+        // 1. 必須文字種（大文字、数字、記号）から最低1文字ずつ確保
+        let filledCount = 0;
+        mandatoryPools.forEach(pool => {
+            if (filledCount < length) {
+                // randomValuesを消費してランダム選択
+                passwordArray.push(pool[randomValues[filledCount] % pool.length]);
+                filledCount++;
+            }
+        });
+
+        // 2. 残りの文字数を全体のプールからランダムに埋める
+        for (let i = filledCount; i < length; i++) {
             const randomIndex = randomValues[i] % allowedChars.length;
-            password += allowedChars[randomIndex];
+            passwordArray.push(allowedChars[randomIndex]);
         }
 
+        // 3. 配列をシャッフルする（必須文字が先頭に固まらないように）
+        // フィッシャー–イェーツのシャッフル
+        for (let i = passwordArray.length - 1; i > 0; i--) {
+            // シャッフル用に簡易乱数を使用（ここはMath.randomで十分）
+            const j = Math.floor(Math.random() * (i + 1));
+            [passwordArray[i], passwordArray[j]] = [passwordArray[j], passwordArray[i]];
+        }
+
+        let password = passwordArray.join('');
+
         if (useHyphens) {
-            password = password.match(/.{1,4}/g).join('-');
+            const parts = password.match(/.{1,4}/g);
+            if (parts) password = parts.join('-');
         }
 
         document.getElementById('passwordDisplay').innerText = password;
+        
+        // エントロピー計算は元の文字数(length)で行う
         evaluateStrength(length, allowedChars.length);
     }
 
@@ -338,3 +384,44 @@
     function copyPassword() {
         const password = document.getElementById('passwordDisplay').innerText;
         if (!password) return;
+        navigator.clipboard.writeText(password).then(() => {
+            const msg = document.getElementById('copyMsg');
+            msg.classList.add('show');
+            setTimeout(() => msg.classList.remove('show'), 2000);
+        });
+    }
+
+    function saveSettings() {
+        const settings = {
+            length: document.getElementById('length').value,
+            useUpper: document.getElementById('useUpper').checked,
+            useNumbers: document.getElementById('useNumbers').checked,
+            useSymbols: document.getElementById('useSymbols').checked,
+            excludeAmbiguous: document.getElementById('excludeAmbiguous').checked,
+            useHyphens: document.getElementById('useHyphens').checked
+        };
+        localStorage.setItem('pwdSettings', JSON.stringify(settings));
+    }
+
+    function loadSettings() {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.setAttribute('data-theme', 'dark');
+            document.getElementById('themeBtn').innerText = '☀️ ライト';
+        }
+
+        const saved = localStorage.getItem('pwdSettings');
+        if (saved) {
+            const settings = JSON.parse(saved);
+            document.getElementById('length').value = settings.length;
+            document.getElementById('useUpper').checked = settings.useUpper;
+            document.getElementById('useNumbers').checked = settings.useNumbers;
+            document.getElementById('useSymbols').checked = settings.useSymbols;
+            if (settings.excludeAmbiguous !== undefined) document.getElementById('excludeAmbiguous').checked = settings.excludeAmbiguous;
+            if (settings.useHyphens !== undefined) document.getElementById('useHyphens').checked = settings.useHyphens;
+        }
+    }
+</script>
+
+</body>
+</html>
