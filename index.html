@@ -20,6 +20,7 @@
             --bg-color: #121212;
             --container-bg: #1e1e1e;
             --text-color: #e0e0e0;
+            /* ダークモード時のアクセントカラーは紫のままですが、強度メーターの「最強」は青に固定されます */
             --accent-color: #bb86fc;
             --accent-hover: #9b65de;
             --result-bg: #2d2d2d;
@@ -81,9 +82,9 @@
             background: var(--result-bg);
             padding: 16px;
             padding-right: 50px;
-            /* 視認性の高いフォント設定を追加 */
+            /* 視認性の高いフォント設定 */
             font-family: "SF Mono", "Consolas", "Monaco", monospace;
-            font-feature-settings: "zero"; /* 0にスラッシュを入れる */
+            font-feature-settings: "zero";
             font-variant-ligatures: none;
             font-size: 1.2rem;
             border-radius: 8px;
@@ -277,17 +278,11 @@
         const numberChars = '0123456789';
         const symbolChars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
         
-        // 強化された「紛らわしい文字」リスト
         const ambiguous = 'Il10OozZ2|'; 
 
-        // フィルタリング用ヘルパー関数
         const filterChars = (chars) => excludeAmbiguous ? chars.split('').filter(c => !ambiguous.includes(c)).join('') : chars;
 
-        // まず、小文字プールを作成
         let allowedChars = filterChars(lowerChars);
-        
-        // 各種プールを作成し、結合する
-        // 同時に「最低1文字はこれを使う」ための強制プールも作る
         let mandatoryPools = [];
 
         if (useUpper) {
@@ -306,33 +301,26 @@
             if (filtered.length > 0) mandatoryPools.push(filtered);
         }
 
-        // 何も選択されていない、またはフィルタで空になった場合の安全策
         if (allowedChars === '') allowedChars = lowerChars;
 
         let passwordArray = [];
         const randomValues = new Uint32Array(length);
         window.crypto.getRandomValues(randomValues);
 
-        // 1. 必須文字種（大文字、数字、記号）から最低1文字ずつ確保
         let filledCount = 0;
         mandatoryPools.forEach(pool => {
             if (filledCount < length) {
-                // randomValuesを消費してランダム選択
                 passwordArray.push(pool[randomValues[filledCount] % pool.length]);
                 filledCount++;
             }
         });
 
-        // 2. 残りの文字数を全体のプールからランダムに埋める
         for (let i = filledCount; i < length; i++) {
             const randomIndex = randomValues[i] % allowedChars.length;
             passwordArray.push(allowedChars[randomIndex]);
         }
 
-        // 3. 配列をシャッフルする（必須文字が先頭に固まらないように）
-        // フィッシャー–イェーツのシャッフル
         for (let i = passwordArray.length - 1; i > 0; i--) {
-            // シャッフル用に簡易乱数を使用（ここはMath.randomで十分）
             const j = Math.floor(Math.random() * (i + 1));
             [passwordArray[i], passwordArray[j]] = [passwordArray[j], passwordArray[i]];
         }
@@ -345,8 +333,6 @@
         }
 
         document.getElementById('passwordDisplay').innerText = password;
-        
-        // エントロピー計算は元の文字数(length)で行う
         evaluateStrength(length, allowedChars.length);
     }
 
@@ -360,7 +346,8 @@
         let percent = 20;
 
         if (entropy > 120) {
-            color = document.body.getAttribute('data-theme') === 'dark' ? '#bb86fc' : '#007bff';
+            // ここを修正：テーマに関わらず常に青色(#007bff)にする
+            color = '#007bff';
             label = '最強 (解読不能)';
             percent = 100;
         } else if (entropy > 80) {
@@ -425,4 +412,3 @@
 
 </body>
 </html>
-
