@@ -235,17 +235,14 @@
 </div>
 
 <script>
-    // DOMの読み込みが完了した段階でイベントリスナーを結びつける（モダン化）
     document.addEventListener('DOMContentLoaded', () => {
         loadSettings();
         generatePassword();
 
-        // 各種ボタンのクリックイベント
         document.getElementById('themeBtn').addEventListener('click', toggleTheme);
         document.querySelector('.copy-btn').addEventListener('click', copyPassword);
         document.querySelector('.generate-btn').addEventListener('click', generatePassword);
 
-        // 設定値が変更されたら自動保存するイベント
         const settingIds = ['length', 'useUpper', 'useNumbers', 'useSymbols', 'excludeAmbiguous', 'useHyphens'];
         settingIds.forEach(id => {
             document.getElementById(id).addEventListener('change', saveSettings);
@@ -285,8 +282,15 @@
     function generatePassword() {
         const lengthInput = document.getElementById('length');
         let length = parseInt(lengthInput.value);
-        if (isNaN(length) || length < 4) { length = 4; lengthInput.value = 4; }
-        else if (length > 128) { length = 128; lengthInput.value = 128; }
+        
+        // 【修正点】空欄や無効な文字列(NaN)が入力された場合、安全に4文字へフォールバック
+        if (isNaN(length) || length < 4) { 
+            length = 4; 
+            lengthInput.value = 4; 
+        } else if (length > 128) { 
+            length = 128; 
+            lengthInput.value = 128; 
+        }
 
         const useUpper = document.getElementById('useUpper').checked;
         const useNumbers = document.getElementById('useNumbers').checked;
@@ -298,4 +302,151 @@
         const upperChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         const numberChars = '0123456789';
         const symbolChars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
-        const ambiguous = 'Il10OozZ2
+        const ambiguous = 'Il10OozZ2|'; 
+
+        const filterChars = (chars) => excludeAmbiguous ? chars.split('').filter(c => !ambiguous.includes(c)).join('') : chars;
+
+        let allowedChars = filterChars(lowerChars);
+        let mandatoryPools = [];
+
+        if (useUpper) {
+            const filtered = filterChars(upperChars);
+            allowedChars += filtered;
+            if (filtered.length > 0) mandatoryPools.push(filtered);
+        }
+        if (useNumbers) {
+            const filtered = filterChars(numberChars);
+            allowedChars += filtered;
+            if (filtered.length > 0) mandatoryPools.push(filtered);
+        }
+        if (useSymbols) {
+            const filtered = filterChars(symbolChars);
+            allowedChars += filtered;
+            if (filtered.length > 0) mandatoryPools.push(filtered);
+        }
+
+        if (allowedChars === '') allowedChars = lowerChars;
+
+        let actualLength = length;
+        if (useHyphens) {
+            let hyphenCount = 0;
+            for (let i = 0; i < length; i++) {
+                if ((i + 1) % 5 === 0 && i < length - 1) {
+                    hyphenCount++;
+                }
+            }
+            actualLength = length - hyphenCount;
+        }
+
+        let passwordArray = [];
+
+        mandatoryPools.forEach(pool => {
+            if (passwordArray.length < actualLength) {
+                const randomIndex = getSecureRandomInt(pool.length);
+                passwordArray.push(pool[randomIndex]);
+            }
+        });
+
+        while (passwordArray.length < actualLength) {
+            const randomIndex = getSecureRandomInt(allowedChars.length);
+            passwordArray.push(allowedChars[randomIndex]);
+        }
+
+        for (let i = passwordArray.length - 1; i > 0; i--) {
+            const j = getSecureRandomInt(i + 1);
+            [passwordArray[i], passwordArray[j]] = [passwordArray[j], passwordArray[i]];
+        }
+
+        let password = "";
+        if (useHyphens) {
+            let charIndex = 0;
+            for (let i = 0; i < length; i++) {
+                if ((i + 1) % 5 === 0 && i < length - 1) {
+                    password += '-';
+                } else {
+                    password += passwordArray[charIndex++];
+                }
+            }
+        } else {
+            password = passwordArray.join('');
+        }
+
+        document.getElementById('passwordDisplay').innerText = password;
+        evaluateStrength(actualLength, allowedChars.length);
+    }
+
+    function evaluateStrength(length, poolSize) {
+        const entropy = length * Math.log2(poolSize);
+        const bar = document.getElementById('strengthBar');
+        const text = document.getElementById('strengthText');
+        
+        let color = '#dc3545';
+        let label = '危険';
+        let percent = 20;
+
+        if (entropy > 120) {
+            color = '#007bff';
+            label = '最強 (解読不能)';
+            percent = 100;
+        } else if (entropy > 80) {
+            color = '#28a745';
+            label = '安全 (強力)';
+            percent = 75;
+        } else if (entropy > 50) {
+            color = '#ffc107';
+            label = '普通 (まあまあ)';
+            percent = 50;
+        } else {
+            label = '危険 (脆弱)';
+        }
+
+        bar.style.width = percent + '%';
+        bar.style.backgroundColor = color;
+        text.innerText = `${label} / ${Math.floor(entropy)} bits`;
+        text.style.color = color;
+    }
+
+    function copyPassword() {
+        const password = document.getElementById('passwordDisplay').innerText;
+        if (!password) return;
+        navigator.clipboard.writeText(password).then(() => {
+            const msg = document.getElementById('copyMsg');
+            msg.classList.add('show');
+            setTimeout(() => msg.classList.remove('show'), 2000);
+        });
+    }
+
+    function saveSettings() {
+        const settings = {
+            length: document.getElementById('length').value,
+            useUpper: document.getElementById('useUpper').checked,
+            useNumbers: document.getElementById('useNumbers').checked,
+            useSymbols: document.getElementById('useSymbols').checked,
+            excludeAmbiguous: document.getElementById('excludeAmbiguous').checked,
+            useHyphens: document.getElementById('useHyphens').checked
+        };
+        localStorage.setItem('pwdSettings', JSON.stringify(settings));
+    }
+
+    function loadSettings() {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.setAttribute('data-theme', 'dark');
+            document.getElementById('themeBtn').innerText = '☀️ ライト';
+        }
+
+        const saved = localStorage.getItem('pwdSettings');
+        if (saved) {
+            const settings = JSON.parse(saved);
+            document.getElementById('length').value = settings.length;
+            document.getElementById('useUpper').checked = settings.useUpper;
+            document.getElementById('useNumbers').checked = settings.useNumbers;
+            document.getElementById('useSymbols').checked = settings.useSymbols;
+            if (settings.excludeAmbiguous !== undefined) document.getElementById('excludeAmbiguous').checked = settings.excludeAmbiguous;
+            if (settings.useHyphens !== undefined) document.getElementById('useHyphens').checked = settings.useHyphens;
+        }
+    }
+</script>
+
+</body>
+</html>
