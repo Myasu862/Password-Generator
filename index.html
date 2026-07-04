@@ -285,8 +285,8 @@
     function generatePassword() {
         const lengthInput = document.getElementById('length');
         let length = parseInt(lengthInput.value);
-        if (length > 128) { length = 128; lengthInput.value = 128; }
-        if (length < 4) { length = 4; lengthInput.value = 4; }
+        if (isNaN(length) || length < 4) { length = 4; lengthInput.value = 4; }
+        else if (length > 128) { length = 128; lengthInput.value = 128; }
 
         const useUpper = document.getElementById('useUpper').checked;
         const useNumbers = document.getElementById('useNumbers').checked;
