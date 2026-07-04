@@ -188,12 +188,12 @@
 <div class="container">
     <div class="header">
         <h2>パスワードジェネレーター</h2>
-        <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙 ダーク</button>
+        <button class="theme-toggle" id="themeBtn">🌙 ダーク</button>
     </div>
     
     <div class="result-wrapper">
         <div class="result-box" id="passwordDisplay"></div>
-        <button class="copy-btn" onclick="copyPassword()" title="クリップボードにコピー">📋</button>
+        <button class="copy-btn" title="クリップボードにコピー">📋</button>
         <div class="copy-message" id="copyMsg">コピーしました！</div>
     </div>
 
@@ -207,38 +207,50 @@
     <div class="settings">
         <div class="setting-item">
             <label for="length">文字数 (4-128)</label>
-            <input type="number" id="length" value="16" min="4" max="128" onchange="saveSettings()">
+            <input type="number" id="length" value="16" min="4" max="128">
         </div>
         <div class="setting-item">
             <label for="useUpper">大文字 (A-Z)</label>
-            <input type="checkbox" id="useUpper" checked onchange="saveSettings()">
+            <input type="checkbox" id="useUpper" checked>
         </div>
         <div class="setting-item">
             <label for="useNumbers">数字 (0-9)</label>
-            <input type="checkbox" id="useNumbers" checked onchange="saveSettings()">
+            <input type="checkbox" id="useNumbers" checked>
         </div>
         <div class="setting-item">
             <label for="useSymbols">記号 (!-#$)</label>
-            <input type="checkbox" id="useSymbols" onchange="saveSettings()">
+            <input type="checkbox" id="useSymbols">
         </div>
         <div class="setting-item">
             <label for="excludeAmbiguous" title="1, l, I, 0, O, o, z, 2, | などを除外します">紛らわしい文字を除く</label>
-            <input type="checkbox" id="excludeAmbiguous" onchange="saveSettings()">
+            <input type="checkbox" id="excludeAmbiguous">
         </div>
         <div class="setting-item">
-            <label for="useHyphens" title="4文字ごとにハイフンを入れます">読みやすく区切る ( - )</label>
-            <input type="checkbox" id="useHyphens" onchange="saveSettings()">
+            <label for="useHyphens" title="4文字ごとにハイフンを入れます。指定文字数内に収めます">読みやすく区切る ( - )</label>
+            <input type="checkbox" id="useHyphens">
         </div>
     </div>
 
-    <button class="generate-btn" onclick="generatePassword()">生成する</button>
+    <button class="generate-btn">生成する</button>
 </div>
 
 <script>
-    window.onload = function() {
+    // DOMの読み込みが完了した段階でイベントリスナーを結びつける（モダン化）
+    document.addEventListener('DOMContentLoaded', () => {
         loadSettings();
         generatePassword();
-    };
+
+        // 各種ボタンのクリックイベント
+        document.getElementById('themeBtn').addEventListener('click', toggleTheme);
+        document.querySelector('.copy-btn').addEventListener('click', copyPassword);
+        document.querySelector('.generate-btn').addEventListener('click', generatePassword);
+
+        // 設定値が変更されたら自動保存するイベント
+        const settingIds = ['length', 'useUpper', 'useNumbers', 'useSymbols', 'excludeAmbiguous', 'useHyphens'];
+        settingIds.forEach(id => {
+            document.getElementById(id).addEventListener('change', saveSettings);
+        });
+    });
 
     function toggleTheme() {
         const body = document.body;
@@ -256,17 +268,8 @@
         }
     }
 
-    /**
-     * 暗号論的疑似乱数生成器(CSPRNG)を使用し、
-     * 拒否サンプリング（Rejection Sampling）によって剰余バイアス(Modulo Bias)を完全に排除した乱数を取得するヘルパー関数
-     * @param {number} range - 選択肢の数 (0 から range - 1 までの整数を返す)
-     * @returns {number} 完全にフラットな確率で選ばれたインデックス
-     */
     function getSecureRandomInt(range) {
         if (range <= 1) return 0;
-        
-        // 32ビット符号なし整数の最大値は 4294967295 (2^32 - 1)
-        // rangeで綺麗に割り切れる上限（この値未満なら偏りが出ない）を計算
         const maxValid = 4294967296 - (4294967296 % range);
         const buffer = new Uint32Array(1);
         
@@ -276,7 +279,6 @@
             if (val < maxValid) {
                 return val % range;
             }
-            // maxValid以上の値が来たら「拒否」してループし、次の乱数を引き直す
         }
     }
 
@@ -296,136 +298,4 @@
         const upperChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         const numberChars = '0123456789';
         const symbolChars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
-        const ambiguous = 'Il10OozZ2|'; 
-
-        const filterChars = (chars) => excludeAmbiguous ? chars.split('').filter(c => !ambiguous.includes(c)).join('') : chars;
-
-        let allowedChars = filterChars(lowerChars);
-        let mandatoryPools = [];
-
-        if (useUpper) {
-            const filtered = filterChars(upperChars);
-            allowedChars += filtered;
-            if (filtered.length > 0) mandatoryPools.push(filtered);
-        }
-        if (useNumbers) {
-            const filtered = filterChars(numberChars);
-            allowedChars += filtered;
-            if (filtered.length > 0) mandatoryPools.push(filtered);
-        }
-        if (useSymbols) {
-            const filtered = filterChars(symbolChars);
-            allowedChars += filtered;
-            if (filtered.length > 0) mandatoryPools.push(filtered);
-        }
-
-        if (allowedChars === '') allowedChars = lowerChars;
-
-        let passwordArray = [];
-
-        // 1. 各文字プールから最低1文字を確実に、かつバイアスなしで選出
-        mandatoryPools.forEach(pool => {
-            if (passwordArray.length < length) {
-                const randomIndex = getSecureRandomInt(pool.length);
-                passwordArray.push(pool[randomIndex]);
-            }
-        });
-
-        // 2. 残りの文字数を、許可された文字プール全体からバイアスなしで補填
-        while (passwordArray.length < length) {
-            const randomIndex = getSecureRandomInt(allowedChars.length);
-            passwordArray.push(allowedChars[randomIndex]);
-        }
-
-        // 3. Fisher-Yatesシャッフル（Math.randomを排除し、CSPRNG＋拒否サンプリングで完全に均等シャッフル）
-        for (let i = passwordArray.length - 1; i > 0; i--) {
-            const j = getSecureRandomInt(i + 1);
-            [passwordArray[i], passwordArray[j]] = [passwordArray[j], passwordArray[i]];
-        }
-
-        let password = passwordArray.join('');
-
-        if (useHyphens) {
-            const parts = password.match(/.{1,4}/g);
-            if (parts) password = parts.join('-');
-        }
-
-        document.getElementById('passwordDisplay').innerText = password;
-        evaluateStrength(length, allowedChars.length);
-    }
-
-    function evaluateStrength(length, poolSize) {
-        const entropy = length * Math.log2(poolSize);
-        const bar = document.getElementById('strengthBar');
-        const text = document.getElementById('strengthText');
-        
-        let color = '#dc3545';
-        let label = '危険';
-        let percent = 20;
-
-        if (entropy > 120) {
-            color = '#007bff';
-            label = '最強 (解読不能)';
-            percent = 100;
-        } else if (entropy > 80) {
-            color = '#28a745';
-            label = '安全 (強力)';
-            percent = 75;
-        } else if (entropy > 50) {
-            color = '#ffc107';
-            label = '普通 (まあまあ)';
-            percent = 50;
-        } else {
-            label = '危険 (脆弱)';
-        }
-
-        bar.style.width = percent + '%';
-        bar.style.backgroundColor = color;
-        text.innerText = `${label} / ${Math.floor(entropy)} bits`;
-        text.style.color = color;
-    }
-
-    function copyPassword() {
-        const password = document.getElementById('passwordDisplay').innerText;
-        if (!password) return;
-        navigator.clipboard.writeText(password).then(() => {
-            const msg = document.getElementById('copyMsg');
-            msg.classList.add('show');
-            setTimeout(() => msg.classList.remove('show'), 2000);
-        });
-    }
-
-    function saveSettings() {
-        const settings = {
-            length: document.getElementById('length').value,
-            useUpper: document.getElementById('useUpper').checked,
-            useNumbers: document.getElementById('useNumbers').checked,
-            useSymbols: document.getElementById('useSymbols').checked,
-            excludeAmbiguous: document.getElementById('excludeAmbiguous').checked,
-            useHyphens: document.getElementById('useHyphens').checked
-        };
-        localStorage.setItem('pwdSettings', JSON.stringify(settings));
-    }
-
-    function loadSettings() {
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark') {
-            document.body.setAttribute('data-theme', 'dark');
-            document.getElementById('themeBtn').innerText = '☀️ ライト';
-        }
-
-        const saved = localStorage.getItem('pwdSettings');
-        if (saved) {
-            const settings = JSON.parse(saved);
-            document.getElementById('length').value = settings.length;
-            document.getElementById('useUpper').checked = settings.useUpper;
-            document.getElementById('useNumbers').checked = settings.useNumbers;
-            document.getElementById('useSymbols').checked = settings.useSymbols;
-            if (settings.excludeAmbiguous !== undefined) document.getElementById('excludeAmbiguous').checked = settings.excludeAmbiguous;
-            if (settings.useHyphens !== undefined) document.getElementById('useHyphens').checked = settings.useHyphens;
-        }
-    }
-</script>
-
-</body>
-</html>
+        const ambiguous = 'Il10OozZ2
