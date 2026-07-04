@@ -20,7 +20,6 @@
             --bg-color: #121212;
             --container-bg: #1e1e1e;
             --text-color: #e0e0e0;
-            /* ダークモード時のアクセントカラーは紫のままですが、強度メーターの「最強」は青に固定されます */
             --accent-color: #bb86fc;
             --accent-hover: #9b65de;
             --result-bg: #2d2d2d;
@@ -59,7 +58,6 @@
 
         h2 { margin: 0; font-size: 1.4rem; font-weight: 700; }
 
-        /* テーマ切替スイッチ */
         .theme-toggle {
             background: none;
             border: 2px solid var(--border-color);
@@ -82,7 +80,6 @@
             background: var(--result-bg);
             padding: 16px;
             padding-right: 50px;
-            /* 視認性の高いフォント設定 */
             font-family: "SF Mono", "Consolas", "Monaco", monospace;
             font-feature-settings: "zero";
             font-variant-ligatures: none;
@@ -132,7 +129,6 @@
         }
         .copy-message.show { opacity: 1; transform: translateY(0); }
 
-        /* 強度メーター */
         .strength-container { margin-bottom: 25px; }
         .strength-bar-bg {
             height: 6px;
@@ -144,7 +140,6 @@
         .strength-bar-fill { height: 100%; width: 0%; transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.4s; }
         .strength-text { font-size: 0.85rem; text-align: right; font-weight: 600; opacity: 0.9; }
 
-        /* 設定エリア */
         .settings { display: grid; gap: 12px; margin-bottom: 25px; }
         .setting-item {
             display: flex;
@@ -261,6 +256,30 @@
         }
     }
 
+    /**
+     * 暗号論的疑似乱数生成器(CSPRNG)を使用し、
+     * 拒否サンプリング（Rejection Sampling）によって剰余バイアス(Modulo Bias)を完全に排除した乱数を取得するヘルパー関数
+     * @param {number} range - 選択肢の数 (0 から range - 1 までの整数を返す)
+     * @returns {number} 完全にフラットな確率で選ばれたインデックス
+     */
+    function getSecureRandomInt(range) {
+        if (range <= 1) return 0;
+        
+        // 32ビット符号なし整数の最大値は 4294967295 (2^32 - 1)
+        // rangeで綺麗に割り切れる上限（この値未満なら偏りが出ない）を計算
+        const maxValid = 4294967296 - (4294967296 % range);
+        const buffer = new Uint32Array(1);
+        
+        while (true) {
+            window.crypto.getRandomValues(buffer);
+            const val = buffer[0];
+            if (val < maxValid) {
+                return val % range;
+            }
+            // maxValid以上の値が来たら「拒否」してループし、次の乱数を引き直す
+        }
+    }
+
     function generatePassword() {
         const lengthInput = document.getElementById('length');
         let length = parseInt(lengthInput.value);
@@ -277,7 +296,6 @@
         const upperChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         const numberChars = '0123456789';
         const symbolChars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
-        
         const ambiguous = 'Il10OozZ2|'; 
 
         const filterChars = (chars) => excludeAmbiguous ? chars.split('').filter(c => !ambiguous.includes(c)).join('') : chars;
@@ -304,24 +322,24 @@
         if (allowedChars === '') allowedChars = lowerChars;
 
         let passwordArray = [];
-        const randomValues = new Uint32Array(length);
-        window.crypto.getRandomValues(randomValues);
 
-        let filledCount = 0;
+        // 1. 各文字プールから最低1文字を確実に、かつバイアスなしで選出
         mandatoryPools.forEach(pool => {
-            if (filledCount < length) {
-                passwordArray.push(pool[randomValues[filledCount] % pool.length]);
-                filledCount++;
+            if (passwordArray.length < length) {
+                const randomIndex = getSecureRandomInt(pool.length);
+                passwordArray.push(pool[randomIndex]);
             }
         });
 
-        for (let i = filledCount; i < length; i++) {
-            const randomIndex = randomValues[i] % allowedChars.length;
+        // 2. 残りの文字数を、許可された文字プール全体からバイアスなしで補填
+        while (passwordArray.length < length) {
+            const randomIndex = getSecureRandomInt(allowedChars.length);
             passwordArray.push(allowedChars[randomIndex]);
         }
 
+        // 3. Fisher-Yatesシャッフル（Math.randomを排除し、CSPRNG＋拒否サンプリングで完全に均等シャッフル）
         for (let i = passwordArray.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
+            const j = getSecureRandomInt(i + 1);
             [passwordArray[i], passwordArray[j]] = [passwordArray[j], passwordArray[i]];
         }
 
@@ -346,7 +364,6 @@
         let percent = 20;
 
         if (entropy > 120) {
-            // ここを修正：テーマに関わらず常に青色(#007bff)にする
             color = '#007bff';
             label = '最強 (解読不能)';
             percent = 100;
