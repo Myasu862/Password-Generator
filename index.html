@@ -6,15 +6,15 @@
         :root {
             /* Light Theme Colors (Glassmorphism based) */
             --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            --container-bg: rgba(255, 255, 255, 0.6);
+            --container-bg: rgba(255, 255, 255, 0.65);
             --glass-border: rgba(255, 255, 255, 0.4);
             --text-color: #1a1d21;
             
             /* Neon Gradient Accent */
             --accent-gradient: linear-gradient(135deg, #007bff 0%, #a044ff 100%);
-            --accent-glow: 0 4px 15px rgba(111, 66, 193, 0.4);
+            --accent-glow: 0 4px 15px rgba(111, 66, 193, 0.35);
             
-            --result-bg: rgba(255, 255, 255, 0.8);
+            --result-bg: rgba(255, 255, 255, 0.85);
             --border-color: rgba(0, 0, 0, 0.08);
             --shadow: 0 15px 35px rgba(0,0,0,0.1);
             --slider-track: #dee2e6;
@@ -36,7 +36,7 @@
         }
 
         body {
-            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -45,18 +45,17 @@
             margin: 0;
             color: var(--text-color);
             transition: background 0.5s ease;
-            backdrop-filter: blur(5px); /* subtle bg blur */
         }
 
         .container {
             background: var(--container-bg);
-            padding: 3rem;
+            padding: 2.5rem;
             border-radius: 24px;
             border: 1px solid var(--glass-border);
             box-shadow: var(--shadow);
             width: 90%;
             max-width: 440px;
-            backdrop-filter: blur(12px); /* Glass effect */
+            backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             transition: background-color 0.3s, box-shadow 0.3s;
         }
@@ -65,7 +64,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2.5rem;
+            margin-bottom: 2rem;
         }
 
         h2 { 
@@ -78,7 +77,6 @@
             letter-spacing: -0.5px;
         }
 
-        /* SVG Icons Styling */
         .icon-btn {
             background: none;
             border: none;
@@ -97,52 +95,51 @@
         }
         .icon-btn svg { width: 20px; height: 20px; fill: currentColor; }
 
-        /* Result Area */
-        .result-wrapper { position: relative; margin-bottom: 1.5rem; }
+        .result-wrapper { position: relative; margin-bottom: 1.2rem; }
         
         .result-box {
             background: var(--result-bg);
-            padding: 20px;
-            padding-right: 60px;
+            padding: 18px;
+            padding-right: 55px;
             font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
-            font-size: 1.3rem;
+            font-size: 1.15rem;
             border-radius: 12px;
             word-break: break-all;
-            min-height: 32px;
+            min-height: 28px;
             border: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             color: var(--text-color);
-            font-weight: 500;
+            font-weight: 600;
             transition: all 0.3s;
             letter-spacing: 0.5px;
         }
         .result-box.generated {
-            border-color: rgba(111, 66, 193, 0.3);
-            box-shadow: 0 0 15px rgba(111, 66, 193, 0.1) inset;
+            border-color: rgba(111, 66, 193, 0.4);
+            box-shadow: 0 0 15px rgba(111, 66, 193, 0.15) inset;
         }
 
         .copy-btn {
             position: absolute;
-            right: 12px;
+            right: 10px;
             top: 50%;
             transform: translateY(-50%);
             color: var(--icon-color);
         }
         .copy-btn:hover { color: #a044ff; }
 
-        /* Copy Message - Fades in/out at bottom */
         .copy-message {
             position: fixed;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%) translateY(20px);
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
             color: #fff;
             padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 0.9rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
             font-weight: 600;
+            text-align: center;
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s ease;
@@ -151,8 +148,7 @@
         }
         .copy-message.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
 
-        /* Strength Bar - Minimalist */
-        .strength-container { margin-bottom: 2.5rem; }
+        .strength-container { margin-bottom: 2rem; }
         .strength-bar-bg {
             height: 4px;
             background-color: var(--slider-track);
@@ -161,26 +157,24 @@
             margin-bottom: 8px;
         }
         .strength-bar-fill { height: 100%; width: 0%; transition: width 0.5s ease-out, background-color 0.3s; }
-        .strength-text { font-size: 0.8rem; text-align: right; font-weight: 600; opacity: 0.7; letter-spacing: 0.5px;}
+        .strength-text { font-size: 0.8rem; text-align: right; font-weight: 600; opacity: 0.75; letter-spacing: 0.5px;}
 
-        /* Settings Area */
-        .settings { display: grid; gap: 8px; margin-bottom: 2.5rem; }
+        .settings { display: grid; gap: 8px; margin-bottom: 2rem; }
         .setting-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 16px;
-            background: rgba(128,128,128, 0.04);
+            padding: 10px 14px;
+            background: rgba(128,128,128, 0.05);
             border-radius: 10px;
             border: 1px solid transparent;
             transition: all 0.2s;
         }
-        .setting-item:hover { border-color: var(--border-color); background: rgba(128,128,128, 0.07); }
+        .setting-item:hover { border-color: var(--border-color); background: rgba(128,128,128, 0.08); }
         
-        label { cursor: pointer; font-size: 0.95rem; font-weight: 500; color: var(--text-color); opacity: 0.9; }
+        label { cursor: pointer; font-size: 0.9rem; font-weight: 500; color: var(--text-color); opacity: 0.9; }
         
-        /* Custom Slider (Range) Styling */
-        .length-slider-wrapper { display: flex; align-items: center; gap: 15px; width: 60%; }
+        .length-slider-wrapper { display: flex; align-items: center; gap: 12px; width: 55%; }
         input[type="range"] {
             -webkit-appearance: none;
             width: 100%;
@@ -199,25 +193,23 @@
             width: 18px;
             border-radius: 50%;
             background: #fff;
-            border: 3px solid #007bff; /* base accent */
-            margin-top: -6px; /* centers thumb on track */
+            border: 3px solid #007bff;
+            margin-top: -6px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             transition: all 0.2s;
         }
-        /* Gradient thumb on hover/active */
         input[type="range"]:hover::-webkit-slider-thumb {
             border-color: #a044ff;
             transform: scale(1.1);
         }
 
-        #lengthVal { font-weight: 700; font-size: 1.1rem; color: #a044ff; min-width: 30px; text-align: right;}
+        #lengthVal { font-weight: 700; font-size: 1rem; color: #a044ff; min-width: 32px; text-align: right;}
 
-        /* Custom Toggle Switch Styling */
         .switch {
             position: relative;
             display: inline-block;
-            width: 44px;
-            height: 24px;
+            width: 42px;
+            height: 22px;
         }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider-round {
@@ -226,13 +218,13 @@
             top: 0; left: 0; right: 0; bottom: 0;
             background-color: var(--slider-track);
             transition: .3s;
-            border-radius: 24px;
+            border-radius: 22px;
         }
         .slider-round:before {
             position: absolute;
             content: "";
-            height: 18px;
-            width: 18px;
+            height: 16px;
+            width: 16px;
             left: 3px;
             bottom: 3px;
             background-color: white;
@@ -243,15 +235,14 @@
         input:checked + .slider-round { background: var(--accent-gradient); }
         input:checked + .slider-round:before { transform: translateX(20px); }
 
-        /* Main Generate Button */
         .generate-btn {
             width: 100%;
-            padding: 16px;
+            padding: 15px;
             background: var(--accent-gradient);
             color: #ffffff;
             border: none;
             border-radius: 12px;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -261,7 +252,7 @@
         }
         .generate-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(111, 66, 193, 0.5);
+            box-shadow: 0 6px 20px rgba(111, 66, 193, 0.45);
             filter: brightness(1.05);
         }
         .generate-btn:active { transform: translateY(1px); box-shadow: var(--accent-glow); }
@@ -269,16 +260,14 @@
     </style></head><body><div class="container">
     <div class="header">
         <h2>GlowPass</h2>
-        <!-- Theme Toggle SVGs -->
         <button class="icon-btn" id="themeBtn" title="テーマ切り替え">
-            <svg id="themeIcon" viewBox="0 0 24 24"><!-- Moon icon default --><path d="M12.1 22h-.1c-5.5 0-10-4.5-10-10S6.5 2 12 2c.9 0 1.8.1 2.6.4.5.2.7.7.5 1.2-.2.5-.7.7-1.2.5-.6-.2-1.3-.3-1.9-.3-4.4 0-8 3.6-8 8s3.6 8 8 8c1.7 0 3.4-.5 4.8-1.5.4-.3 1-.2 1.3.2.3.4.2 1-.2 1.3-1.7 1.3-3.8 2-5.8 2z"/></svg>
+            <svg id="themeIcon" viewBox="0 0 24 24"><path d="M12.1 22h-.1c-5.5 0-10-4.5-10-10S6.5 2 12 2c.9 0 1.8.1 2.6.4.5.2.7.7.5 1.2-.2.5-.7.7-1.2.5-.6-.2-1.3-.3-1.9-.3-4.4 0-8 3.6-8 8s3.6 8 8 8c1.7 0 3.4-.5 4.8-1.5.4-.3 1-.2 1.3.2.3.4.2 1-.2 1.3-1.7 1.3-3.8 2-5.8 2z"/></svg>
         </button>
     </div>
     
     <div class="result-wrapper">
         <div class="result-box" id="passwordDisplay"></div>
         <button class="icon-btn copy-btn" title="クリップボードにコピー">
-            <!-- Copy Icon -->
             <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
         </button>
     </div>
@@ -291,15 +280,14 @@
     </div>
 
     <div class="settings">
-        <!-- Range Slider for Length -->
+        <!-- 範囲を 4〜128 に復元 -->
         <div class="setting-item">
-            <label for="length">文字数</label>
+            <label for="length">文字数 (4-128)</label>
             <div class="length-slider-wrapper">
-                <input type="range" id="length" value="16" min="4" max="64" step="1">
+                <input type="range" id="length" value="16" min="4" max="128" step="1">
                 <span id="lengthVal">16</span>
             </div>
         </div>
-        <!-- Toggle Switches -->
         <div class="setting-item">
             <label for="useUpper">大文字 (A-Z)</label>
             <label class="switch"><input type="checkbox" id="useUpper" checked><span class="slider-round"></span></label>
@@ -316,23 +304,26 @@
             <label for="excludeAmbiguous" title="1, l, I, 0, Oなど類似文字を除外">紛らわしい文字を除く</label>
             <label class="switch"><input type="checkbox" id="excludeAmbiguous"><span class="slider-round"></span></label>
         </div>
+        <!-- 復元：ハイフン機能 -->
+        <div class="setting-item">
+            <label for="useHyphens" title="4文字ごとにハイフンを挿入">読みやすく区切る ( - )</label>
+            <label class="switch"><input type="checkbox" id="useHyphens"><span class="slider-round"></span></label>
+        </div>
     </div>
 
     <button class="generate-btn">生成する</button>
 </div>
 
-<!-- Copy Notification (Bottom) -->
 <div class="copy-message" id="copyMsg">
-    クリップボードにコピーしました。<br>
-    <span style="font-size:0.8rem; font-weight:400; opacity:0.8;">(セキュリティのため60秒後に消去します)</span>
+    クリップボードにコピーしました<br>
+    <span style="font-size:0.75rem; font-weight:400; opacity:0.8;">(セキュリティのため60秒後に自動消去されます)</span>
 </div>
 
 <script>
-    // SVG Paths for icons
     const svgMoon = '<path d="M12.1 22h-.1c-5.5 0-10-4.5-10-10S6.5 2 12 2c.9 0 1.8.1 2.6.4.5.2.7.7.5 1.2-.2.5-.7.7-1.2.5-.6-.2-1.3-.3-1.9-.3-4.4 0-8 3.6-8 8s3.6 8 8 8c1.7 0 3.4-.5 4.8-1.5.4-.3 1-.2 1.3.2.3.4.2 1-.2 1.3-1.7 1.3-3.8 2-5.8 2z"/>';
     const svgSun = '<path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>';
 
-    let clearClipboardTimer = null; // Timer reference
+    let clearClipboardTimer = null;
 
     document.addEventListener('DOMContentLoaded', () => {
         loadSettings();
@@ -342,7 +333,6 @@
         document.querySelector('.copy-btn').addEventListener('click', copyPassword);
         document.querySelector('.generate-btn').addEventListener('click', generatePassword);
 
-        // Slider value display update
         const lengthSlider = document.getElementById('length');
         const lengthValDisplay = document.getElementById('lengthVal');
         lengthSlider.addEventListener('input', (e) => {
@@ -350,7 +340,7 @@
             saveSettings();
         });
 
-        const settingIds = ['useUpper', 'useNumbers', 'useSymbols', 'excludeAmbiguous'];
+        const settingIds = ['useUpper', 'useNumbers', 'useSymbols', 'excludeAmbiguous', 'useHyphens'];
         settingIds.forEach(id => {
             document.getElementById(id).addEventListener('change', saveSettings);
         });
@@ -372,7 +362,6 @@
         }
     }
 
-    // CSPRNG
     function getSecureRandomInt(range) {
         if (range <= 1) return 0;
         const maxValid = 4294967296 - (4294967296 % range);
@@ -385,8 +374,7 @@
     }
 
     function generatePassword() {
-        // Clear potential previous clipboard timer if generating new
-        if(clearClipboardTimer) {
+        if (clearClipboardTimer) {
             clearTimeout(clearClipboardTimer);
             clearClipboardTimer = null;
         }
@@ -396,12 +384,13 @@
         const useNumbers = document.getElementById('useNumbers').checked;
         const useSymbols = document.getElementById('useSymbols').checked;
         const excludeAmbiguous = document.getElementById('excludeAmbiguous').checked;
+        const useHyphens = document.getElementById('useHyphens').checked;
 
         const lowerChars = 'abcdefghijklmnopqrstuvwxyz';
         const upperChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         const numberChars = '0123456789';
         const symbolChars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
-        const ambiguous = 'Il10O'; 
+        const ambiguous = 'Il10OozZ2|'; 
 
         const filterChars = (chars) => excludeAmbiguous ? chars.split('').filter(c => !ambiguous.includes(c)).join('') : chars;
 
@@ -426,53 +415,77 @@
 
         if (allowedChars === '') allowedChars = lowerChars;
 
+        // ハイフン挿入時の実質ランダム文字数を計算
+        let actualLength = length;
+        if (useHyphens) {
+            let hyphenCount = 0;
+            for (let i = 0; i < length; i++) {
+                if ((i + 1) % 5 === 0 && i < length - 1) hyphenCount++;
+            }
+            actualLength = length - hyphenCount;
+        }
+
         let passwordArray = [];
         mandatoryPools.forEach(pool => {
-            if (passwordArray.length < length) {
+            if (passwordArray.length < actualLength) {
                 passwordArray.push(pool[getSecureRandomInt(pool.length)]);
             }
         });
 
-        while (passwordArray.length < length) {
+        while (passwordArray.length < actualLength) {
             passwordArray.push(allowedChars[getSecureRandomInt(allowedChars.length)]);
         }
 
-        // Fisher-Yates Shuffle
+        // Fisher-Yates シャッフル
         for (let i = passwordArray.length - 1; i > 0; i--) {
             const j = getSecureRandomInt(i + 1);
             [passwordArray[i], passwordArray[j]] = [passwordArray[j], passwordArray[i]];
         }
 
-        const password = passwordArray.join('');
+        // ハイフン組み立て
+        let password = "";
+        if (useHyphens) {
+            let charIndex = 0;
+            for (let i = 0; i < length; i++) {
+                if ((i + 1) % 5 === 0 && i < length - 1) {
+                    password += '-';
+                } else {
+                    password += passwordArray[charIndex++];
+                }
+            }
+        } else {
+            password = passwordArray.join('');
+        }
+
         const display = document.getElementById('passwordDisplay');
         display.innerText = password;
-        display.classList.remove('generated'); // Reset animation
-        void display.offsetWidth; // Trigger reflow
-        display.classList.add('generated'); // Start animation
+        display.classList.remove('generated');
+        void display.offsetWidth;
+        display.classList.add('generated');
 
-        evaluateStrength(length, allowedChars.length);
+        // エントロピー計算（固定記号のハイフンを除いた実質文字数で計算）
+        evaluateStrength(actualLength, allowedChars.length);
     }
 
-    // Entropy-based Strength Evaluation
     function evaluateStrength(length, poolSize) {
         const entropy = length * Math.log2(poolSize);
         const bar = document.getElementById('strengthBar');
         const text = document.getElementById('strengthText');
         
-        let color = '#ef4444'; // red
+        let color = '#ef4444';
         let label = '脆弱';
         let percent = 25;
 
-        if (entropy > 100) {
-            color = '#a044ff'; // purple (accent)
+        if (entropy > 120) {
+            color = '#a044ff';
             label = '最強';
             percent = 100;
-        } else if (entropy > 70) {
-            color = '#22c55e'; // green
+        } else if (entropy > 80) {
+            color = '#22c55e';
             label = '安全';
             percent = 75;
-        } else if (entropy > 40) {
-            color = '#f59e0b'; // amber
+        } else if (entropy > 50) {
+            color = '#f59e0b';
             label = '普通';
             percent = 50;
         }
@@ -487,33 +500,25 @@
         const password = document.getElementById('passwordDisplay').innerText;
         if (!password) return;
 
-        // Cancel previous timer if user clicks copy again quickly
         if (clearClipboardTimer) {
             clearTimeout(clearClipboardTimer);
         }
 
         navigator.clipboard.writeText(password).then(() => {
-            // Show notification
             const msg = document.getElementById('copyMsg');
             msg.classList.add('show');
-            setTimeout(() => msg.classList.remove('show'), 4000); // Hide toast after 4s
+            setTimeout(() => msg.classList.remove('show'), 3500);
 
-            // --- SECURITY: AUTO-CLEAR CLIPBOARD AFTER 60 SECONDS ---
+            // 60秒後に自動消去
             clearClipboardTimer = setTimeout(() => {
-                // To clear clipboard, we write an empty string
-                // Note: Some browsers might require user interaction, but this is the best effort clientside.
                 navigator.clipboard.writeText('').then(() => {
                     console.log('Clipboard cleared for security.');
-                    // Optionally show a subtle message that it was cleared
-                    text.innerText = 'クリップボードを消去しました'; // Reuse strength text briefly?
-                    setTimeout(()=> evaluateStrength(document.getElementById('passwordDisplay').innerText.length, 62), 2000); // reset strength text
-                }).catch(err => console.error('Could not clear clipboard:', err));
-                clearClipboardTimer = null; // Reset timer ref
-            }, 60000); // 60,000 milliseconds = 60 seconds
+                }).catch(err => console.error(err));
+                clearClipboardTimer = null;
+            }, 60000);
         });
     }
 
-    // Settings Persistence
     function saveSettings() {
         const settings = {
             length: document.getElementById('length').value,
@@ -521,6 +526,7 @@
             useNumbers: document.getElementById('useNumbers').checked,
             useSymbols: document.getElementById('useSymbols').checked,
             excludeAmbiguous: document.getElementById('excludeAmbiguous').checked,
+            useHyphens: document.getElementById('useHyphens').checked
         };
         localStorage.setItem('glowPassSettings', JSON.stringify(settings));
     }
@@ -541,6 +547,7 @@
             document.getElementById('useNumbers').checked = settings.useNumbers;
             document.getElementById('useSymbols').checked = settings.useSymbols;
             if (settings.excludeAmbiguous !== undefined) document.getElementById('excludeAmbiguous').checked = settings.excludeAmbiguous;
+            if (settings.useHyphens !== undefined) document.getElementById('useHyphens').checked = settings.useHyphens;
         }
     }
 </script></body></html>
