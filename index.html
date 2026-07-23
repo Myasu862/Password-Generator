@@ -1,51 +1,63 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
+<!DOCTYPE html><html lang="ja"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>パスワードジェネレーター</title>
+    <title>GlowPass | Secure Generator</title>
     <style>
         :root {
-            --bg-color: #f0f2f5;
-            --container-bg: #ffffff;
-            --text-color: #333333;
-            --accent-color: #007bff;
-            --accent-hover: #0056b3;
-            --result-bg: #e9ecef;
-            --border-color: #dee2e6;
-            --shadow: 0 8px 30px rgba(0,0,0,0.12);
+            /* Light Theme Colors (Glassmorphism based) */
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --container-bg: rgba(255, 255, 255, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --text-color: #1a1d21;
+            
+            /* Neon Gradient Accent */
+            --accent-gradient: linear-gradient(135deg, #007bff 0%, #a044ff 100%);
+            --accent-glow: 0 4px 15px rgba(111, 66, 193, 0.4);
+            
+            --result-bg: rgba(255, 255, 255, 0.8);
+            --border-color: rgba(0, 0, 0, 0.08);
+            --shadow: 0 15px 35px rgba(0,0,0,0.1);
+            --slider-track: #dee2e6;
+            --icon-color: #6c757d;
         }
 
         [data-theme="dark"] {
-            --bg-color: #121212;
-            --container-bg: #1e1e1e;
-            --text-color: #e0e0e0;
-            --accent-color: #bb86fc;
-            --accent-hover: #9b65de;
-            --result-bg: #2d2d2d;
-            --border-color: #404040;
-            --shadow: 0 8px 30px rgba(0,0,0,0.5);
+            /* Dark Theme Colors */
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --container-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-color: #f1f5f9;
+            
+            --result-bg: rgba(15, 23, 42, 0.6);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --shadow: 0 15px 35px rgba(0,0,0,0.3);
+            --slider-track: #475569;
+            --icon-color: #94a3b8;
         }
 
         body {
-            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: var(--bg-color);
+            background: var(--bg-gradient);
             margin: 0;
             color: var(--text-color);
-            transition: background-color 0.3s, color 0.3s;
+            transition: background 0.5s ease;
+            backdrop-filter: blur(5px); /* subtle bg blur */
         }
 
         .container {
             background: var(--container-bg);
-            padding: 2.5rem;
-            border-radius: 16px;
+            padding: 3rem;
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
             box-shadow: var(--shadow);
             width: 90%;
-            max-width: 420px;
+            max-width: 440px;
+            backdrop-filter: blur(12px); /* Glass effect */
+            -webkit-backdrop-filter: blur(12px);
             transition: background-color 0.3s, box-shadow 0.3s;
         }
 
@@ -53,188 +65,275 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 2.5rem;
         }
 
-        h2 { margin: 0; font-size: 1.4rem; font-weight: 700; }
+        h2 { 
+            margin: 0; 
+            font-size: 1.6rem; 
+            font-weight: 800; 
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
 
-        .theme-toggle {
+        /* SVG Icons Styling */
+        .icon-btn {
             background: none;
-            border: 2px solid var(--border-color);
-            color: var(--text-color);
-            border-radius: 20px;
-            padding: 5px 12px;
+            border: none;
             cursor: pointer;
-            font-size: 0.9rem;
+            padding: 8px;
+            border-radius: 10px;
+            color: var(--icon-color);
+            transition: all 0.2s;
             display: flex;
             align-items: center;
-            gap: 5px;
-            transition: all 0.2s;
-            font-family: inherit;
+            justify-content: center;
         }
-        .theme-toggle:hover { border-color: var(--accent-color); }
+        .icon-btn:hover {
+            background-color: rgba(128,128,128,0.15);
+            color: var(--text-color);
+        }
+        .icon-btn svg { width: 20px; height: 20px; fill: currentColor; }
 
-        .result-wrapper { position: relative; margin-bottom: 15px; }
+        /* Result Area */
+        .result-wrapper { position: relative; margin-bottom: 1.5rem; }
         
         .result-box {
             background: var(--result-bg);
-            padding: 16px;
-            padding-right: 50px;
-            font-family: "SF Mono", "Consolas", "Monaco", monospace;
-            font-feature-settings: "zero";
-            font-variant-ligatures: none;
-            font-size: 1.2rem;
-            border-radius: 8px;
+            padding: 20px;
+            padding-right: 60px;
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            font-size: 1.3rem;
+            border-radius: 12px;
             word-break: break-all;
-            min-height: 28px;
+            min-height: 32px;
             border: 1px solid var(--border-color);
             display: flex;
             align-items: center;
-            color: var(--accent-color);
-            font-weight: bold;
-            transition: background-color 0.3s, border-color 0.3s;
+            color: var(--text-color);
+            font-weight: 500;
+            transition: all 0.3s;
+            letter-spacing: 0.5px;
+        }
+        .result-box.generated {
+            border-color: rgba(111, 66, 193, 0.3);
+            box-shadow: 0 0 15px rgba(111, 66, 193, 0.1) inset;
         }
 
         .copy-btn {
             position: absolute;
-            right: 8px;
+            right: 12px;
             top: 50%;
             transform: translateY(-50%);
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 6px;
-            font-size: 1.2rem;
-            color: var(--text-color);
-            transition: background 0.2s;
+            color: var(--icon-color);
         }
-        .copy-btn:hover { background-color: rgba(128,128,128,0.2); }
+        .copy-btn:hover { color: #a044ff; }
 
+        /* Copy Message - Fades in/out at bottom */
         .copy-message {
-            position: absolute;
-            top: -35px;
-            right: 0;
-            background: var(--accent-color);
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(0, 0, 0, 0.8);
             color: #fff;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
             opacity: 0;
-            transform: translateY(10px);
-            transition: all 0.3s;
-            pointer-events: none;
-            white-space: nowrap;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 100;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
-        .copy-message.show { opacity: 1; transform: translateY(0); }
+        .copy-message.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
 
-        .strength-container { margin-bottom: 25px; }
+        /* Strength Bar - Minimalist */
+        .strength-container { margin-bottom: 2.5rem; }
         .strength-bar-bg {
-            height: 6px;
-            background-color: var(--border-color);
-            border-radius: 3px;
+            height: 4px;
+            background-color: var(--slider-track);
+            border-radius: 2px;
             overflow: hidden;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
         }
-        .strength-bar-fill { height: 100%; width: 0%; transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.4s; }
-        .strength-text { font-size: 0.85rem; text-align: right; font-weight: 600; opacity: 0.9; }
+        .strength-bar-fill { height: 100%; width: 0%; transition: width 0.5s ease-out, background-color 0.3s; }
+        .strength-text { font-size: 0.8rem; text-align: right; font-weight: 600; opacity: 0.7; letter-spacing: 0.5px;}
 
-        .settings { display: grid; gap: 12px; margin-bottom: 25px; }
+        /* Settings Area */
+        .settings { display: grid; gap: 8px; margin-bottom: 2.5rem; }
         .setting-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid var(--border-color);
+            padding: 12px 16px;
+            background: rgba(128,128,128, 0.04);
+            border-radius: 10px;
+            border: 1px solid transparent;
+            transition: all 0.2s;
         }
-        .setting-item:last-child { border-bottom: none; }
+        .setting-item:hover { border-color: var(--border-color); background: rgba(128,128,128, 0.07); }
         
-        label { cursor: pointer; font-size: 0.95rem; }
+        label { cursor: pointer; font-size: 0.95rem; font-weight: 500; color: var(--text-color); opacity: 0.9; }
         
-        input[type="number"] {
-            padding: 6px;
-            background: var(--bg-color);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            width: 60px;
-            text-align: center;
-            font-weight: bold;
+        /* Custom Slider (Range) Styling */
+        .length-slider-wrapper { display: flex; align-items: center; gap: 15px; width: 60%; }
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+            cursor: pointer;
         }
-        input[type="checkbox"] { transform: scale(1.2); cursor: pointer; accent-color: var(--accent-color); }
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            background: var(--slider-track);
+            border-radius: 3px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid #007bff; /* base accent */
+            margin-top: -6px; /* centers thumb on track */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+        /* Gradient thumb on hover/active */
+        input[type="range"]:hover::-webkit-slider-thumb {
+            border-color: #a044ff;
+            transform: scale(1.1);
+        }
 
+        #lengthVal { font-weight: 700; font-size: 1.1rem; color: #a044ff; min-width: 30px; text-align: right;}
+
+        /* Custom Toggle Switch Styling */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider-round {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--slider-track);
+            transition: .3s;
+            border-radius: 24px;
+        }
+        .slider-round:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        input:checked + .slider-round { background: var(--accent-gradient); }
+        input:checked + .slider-round:before { transform: translateX(20px); }
+
+        /* Main Generate Button */
         .generate-btn {
             width: 100%;
-            padding: 14px;
-            background-color: var(--accent-color);
+            padding: 16px;
+            background: var(--accent-gradient);
             color: #ffffff;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             font-size: 1.1rem;
-            font-weight: bold;
+            font-weight: 700;
             cursor: pointer;
-            transition: transform 0.1s, filter 0.2s;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+            box-shadow: var(--accent-glow);
             font-family: inherit;
+            letter-spacing: 0.5px;
         }
-        .generate-btn:hover { filter: brightness(1.1); }
-        .generate-btn:active { transform: scale(0.98); }
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(111, 66, 193, 0.5);
+            filter: brightness(1.05);
+        }
+        .generate-btn:active { transform: translateY(1px); box-shadow: var(--accent-glow); }
 
-    </style>
-</head>
-<body>
-
-<div class="container">
+    </style></head><body><div class="container">
     <div class="header">
-        <h2>パスワードジェネレーター</h2>
-        <button class="theme-toggle" id="themeBtn">🌙 ダーク</button>
+        <h2>GlowPass</h2>
+        <!-- Theme Toggle SVGs -->
+        <button class="icon-btn" id="themeBtn" title="テーマ切り替え">
+            <svg id="themeIcon" viewBox="0 0 24 24"><!-- Moon icon default --><path d="M12.1 22h-.1c-5.5 0-10-4.5-10-10S6.5 2 12 2c.9 0 1.8.1 2.6.4.5.2.7.7.5 1.2-.2.5-.7.7-1.2.5-.6-.2-1.3-.3-1.9-.3-4.4 0-8 3.6-8 8s3.6 8 8 8c1.7 0 3.4-.5 4.8-1.5.4-.3 1-.2 1.3.2.3.4.2 1-.2 1.3-1.7 1.3-3.8 2-5.8 2z"/></svg>
+        </button>
     </div>
     
     <div class="result-wrapper">
         <div class="result-box" id="passwordDisplay"></div>
-        <button class="copy-btn" title="クリップボードにコピー">📋</button>
-        <div class="copy-message" id="copyMsg">コピーしました！</div>
+        <button class="icon-btn copy-btn" title="クリップボードにコピー">
+            <!-- Copy Icon -->
+            <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+        </button>
     </div>
 
     <div class="strength-container">
         <div class="strength-bar-bg">
             <div class="strength-bar-fill" id="strengthBar"></div>
         </div>
-        <div class="strength-text" id="strengthText">計算中...</div>
+        <div class="strength-text" id="strengthText">強度</div>
     </div>
 
     <div class="settings">
+        <!-- Range Slider for Length -->
         <div class="setting-item">
-            <label for="length">文字数 (4-128)</label>
-            <input type="number" id="length" value="16" min="4" max="128">
+            <label for="length">文字数</label>
+            <div class="length-slider-wrapper">
+                <input type="range" id="length" value="16" min="4" max="64" step="1">
+                <span id="lengthVal">16</span>
+            </div>
         </div>
+        <!-- Toggle Switches -->
         <div class="setting-item">
             <label for="useUpper">大文字 (A-Z)</label>
-            <input type="checkbox" id="useUpper" checked>
+            <label class="switch"><input type="checkbox" id="useUpper" checked><span class="slider-round"></span></label>
         </div>
         <div class="setting-item">
             <label for="useNumbers">数字 (0-9)</label>
-            <input type="checkbox" id="useNumbers" checked>
+            <label class="switch"><input type="checkbox" id="useNumbers" checked><span class="slider-round"></span></label>
         </div>
         <div class="setting-item">
             <label for="useSymbols">記号 (!-#$)</label>
-            <input type="checkbox" id="useSymbols">
+            <label class="switch"><input type="checkbox" id="useSymbols"><span class="slider-round"></span></label>
         </div>
         <div class="setting-item">
-            <label for="excludeAmbiguous" title="1, l, I, 0, O, o, z, 2, | などを除外します">紛らわしい文字を除く</label>
-            <input type="checkbox" id="excludeAmbiguous">
-        </div>
-        <div class="setting-item">
-            <label for="useHyphens" title="4文字ごとにハイフンを入れます。指定文字数内に収めます">読みやすく区切る ( - )</label>
-            <input type="checkbox" id="useHyphens">
+            <label for="excludeAmbiguous" title="1, l, I, 0, Oなど類似文字を除外">紛らわしい文字を除く</label>
+            <label class="switch"><input type="checkbox" id="excludeAmbiguous"><span class="slider-round"></span></label>
         </div>
     </div>
 
     <button class="generate-btn">生成する</button>
 </div>
 
+<!-- Copy Notification (Bottom) -->
+<div class="copy-message" id="copyMsg">
+    クリップボードにコピーしました。<br>
+    <span style="font-size:0.8rem; font-weight:400; opacity:0.8;">(セキュリティのため60秒後に消去します)</span>
+</div>
+
 <script>
+    // SVG Paths for icons
+    const svgMoon = '<path d="M12.1 22h-.1c-5.5 0-10-4.5-10-10S6.5 2 12 2c.9 0 1.8.1 2.6.4.5.2.7.7.5 1.2-.2.5-.7.7-1.2.5-.6-.2-1.3-.3-1.9-.3-4.4 0-8 3.6-8 8s3.6 8 8 8c1.7 0 3.4-.5 4.8-1.5.4-.3 1-.2 1.3.2.3.4.2 1-.2 1.3-1.7 1.3-3.8 2-5.8 2z"/>';
+    const svgSun = '<path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>';
+
+    let clearClipboardTimer = null; // Timer reference
+
     document.addEventListener('DOMContentLoaded', () => {
         loadSettings();
         generatePassword();
@@ -243,7 +342,15 @@
         document.querySelector('.copy-btn').addEventListener('click', copyPassword);
         document.querySelector('.generate-btn').addEventListener('click', generatePassword);
 
-        const settingIds = ['length', 'useUpper', 'useNumbers', 'useSymbols', 'excludeAmbiguous', 'useHyphens'];
+        // Slider value display update
+        const lengthSlider = document.getElementById('length');
+        const lengthValDisplay = document.getElementById('lengthVal');
+        lengthSlider.addEventListener('input', (e) => {
+            lengthValDisplay.innerText = e.target.value;
+            saveSettings();
+        });
+
+        const settingIds = ['useUpper', 'useNumbers', 'useSymbols', 'excludeAmbiguous'];
         settingIds.forEach(id => {
             document.getElementById(id).addEventListener('change', saveSettings);
         });
@@ -251,58 +358,50 @@
 
     function toggleTheme() {
         const body = document.body;
-        const btn = document.getElementById('themeBtn');
+        const iconSvg = document.getElementById('themeIcon');
         const isDark = body.getAttribute('data-theme') === 'dark';
         
         if (isDark) {
             body.removeAttribute('data-theme');
-            btn.innerText = '🌙 ダーク';
+            iconSvg.innerHTML = svgMoon;
             localStorage.setItem('theme', 'light');
         } else {
             body.setAttribute('data-theme', 'dark');
-            btn.innerText = '☀️ ライト';
+            iconSvg.innerHTML = svgSun;
             localStorage.setItem('theme', 'dark');
         }
     }
 
+    // CSPRNG
     function getSecureRandomInt(range) {
         if (range <= 1) return 0;
         const maxValid = 4294967296 - (4294967296 % range);
         const buffer = new Uint32Array(1);
-        
         while (true) {
             window.crypto.getRandomValues(buffer);
             const val = buffer[0];
-            if (val < maxValid) {
-                return val % range;
-            }
+            if (val < maxValid) return val % range;
         }
     }
 
     function generatePassword() {
-        const lengthInput = document.getElementById('length');
-        let length = parseInt(lengthInput.value);
-        
-        // 【修正点】空欄や無効な文字列(NaN)が入力された場合、安全に4文字へフォールバック
-        if (isNaN(length) || length < 4) { 
-            length = 4; 
-            lengthInput.value = 4; 
-        } else if (length > 128) { 
-            length = 128; 
-            lengthInput.value = 128; 
+        // Clear potential previous clipboard timer if generating new
+        if(clearClipboardTimer) {
+            clearTimeout(clearClipboardTimer);
+            clearClipboardTimer = null;
         }
 
+        const length = parseInt(document.getElementById('length').value);
         const useUpper = document.getElementById('useUpper').checked;
         const useNumbers = document.getElementById('useNumbers').checked;
         const useSymbols = document.getElementById('useSymbols').checked;
         const excludeAmbiguous = document.getElementById('excludeAmbiguous').checked;
-        const useHyphens = document.getElementById('useHyphens').checked;
 
         const lowerChars = 'abcdefghijklmnopqrstuvwxyz';
         const upperChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         const numberChars = '0123456789';
         const symbolChars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
-        const ambiguous = 'Il10OozZ2|'; 
+        const ambiguous = 'Il10O'; 
 
         const filterChars = (chars) => excludeAmbiguous ? chars.split('').filter(c => !ambiguous.includes(c)).join('') : chars;
 
@@ -327,95 +426,94 @@
 
         if (allowedChars === '') allowedChars = lowerChars;
 
-        let actualLength = length;
-        if (useHyphens) {
-            let hyphenCount = 0;
-            for (let i = 0; i < length; i++) {
-                if ((i + 1) % 5 === 0 && i < length - 1) {
-                    hyphenCount++;
-                }
-            }
-            actualLength = length - hyphenCount;
-        }
-
         let passwordArray = [];
-
         mandatoryPools.forEach(pool => {
-            if (passwordArray.length < actualLength) {
-                const randomIndex = getSecureRandomInt(pool.length);
-                passwordArray.push(pool[randomIndex]);
+            if (passwordArray.length < length) {
+                passwordArray.push(pool[getSecureRandomInt(pool.length)]);
             }
         });
 
-        while (passwordArray.length < actualLength) {
-            const randomIndex = getSecureRandomInt(allowedChars.length);
-            passwordArray.push(allowedChars[randomIndex]);
+        while (passwordArray.length < length) {
+            passwordArray.push(allowedChars[getSecureRandomInt(allowedChars.length)]);
         }
 
+        // Fisher-Yates Shuffle
         for (let i = passwordArray.length - 1; i > 0; i--) {
             const j = getSecureRandomInt(i + 1);
             [passwordArray[i], passwordArray[j]] = [passwordArray[j], passwordArray[i]];
         }
 
-        let password = "";
-        if (useHyphens) {
-            let charIndex = 0;
-            for (let i = 0; i < length; i++) {
-                if ((i + 1) % 5 === 0 && i < length - 1) {
-                    password += '-';
-                } else {
-                    password += passwordArray[charIndex++];
-                }
-            }
-        } else {
-            password = passwordArray.join('');
-        }
+        const password = passwordArray.join('');
+        const display = document.getElementById('passwordDisplay');
+        display.innerText = password;
+        display.classList.remove('generated'); // Reset animation
+        void display.offsetWidth; // Trigger reflow
+        display.classList.add('generated'); // Start animation
 
-        document.getElementById('passwordDisplay').innerText = password;
-        evaluateStrength(actualLength, allowedChars.length);
+        evaluateStrength(length, allowedChars.length);
     }
 
+    // Entropy-based Strength Evaluation
     function evaluateStrength(length, poolSize) {
         const entropy = length * Math.log2(poolSize);
         const bar = document.getElementById('strengthBar');
         const text = document.getElementById('strengthText');
         
-        let color = '#dc3545';
-        let label = '危険';
-        let percent = 20;
+        let color = '#ef4444'; // red
+        let label = '脆弱';
+        let percent = 25;
 
-        if (entropy > 120) {
-            color = '#007bff';
-            label = '最強 (解読不能)';
+        if (entropy > 100) {
+            color = '#a044ff'; // purple (accent)
+            label = '最強';
             percent = 100;
-        } else if (entropy > 80) {
-            color = '#28a745';
-            label = '安全 (強力)';
+        } else if (entropy > 70) {
+            color = '#22c55e'; // green
+            label = '安全';
             percent = 75;
-        } else if (entropy > 50) {
-            color = '#ffc107';
-            label = '普通 (まあまあ)';
+        } else if (entropy > 40) {
+            color = '#f59e0b'; // amber
+            label = '普通';
             percent = 50;
-        } else {
-            label = '危険 (脆弱)';
         }
 
         bar.style.width = percent + '%';
         bar.style.backgroundColor = color;
-        text.innerText = `${label} / ${Math.floor(entropy)} bits`;
+        text.innerText = `${label} (${Math.floor(entropy)} bits)`;
         text.style.color = color;
     }
 
     function copyPassword() {
         const password = document.getElementById('passwordDisplay').innerText;
         if (!password) return;
+
+        // Cancel previous timer if user clicks copy again quickly
+        if (clearClipboardTimer) {
+            clearTimeout(clearClipboardTimer);
+        }
+
         navigator.clipboard.writeText(password).then(() => {
+            // Show notification
             const msg = document.getElementById('copyMsg');
             msg.classList.add('show');
-            setTimeout(() => msg.classList.remove('show'), 2000);
+            setTimeout(() => msg.classList.remove('show'), 4000); // Hide toast after 4s
+
+            // --- SECURITY: AUTO-CLEAR CLIPBOARD AFTER 60 SECONDS ---
+            clearClipboardTimer = setTimeout(() => {
+                // To clear clipboard, we write an empty string
+                // Note: Some browsers might require user interaction, but this is the best effort clientside.
+                navigator.clipboard.writeText('').then(() => {
+                    console.log('Clipboard cleared for security.');
+                    // Optionally show a subtle message that it was cleared
+                    text.innerText = 'クリップボードを消去しました'; // Reuse strength text briefly?
+                    setTimeout(()=> evaluateStrength(document.getElementById('passwordDisplay').innerText.length, 62), 2000); // reset strength text
+                }).catch(err => console.error('Could not clear clipboard:', err));
+                clearClipboardTimer = null; // Reset timer ref
+            }, 60000); // 60,000 milliseconds = 60 seconds
         });
     }
 
+    // Settings Persistence
     function saveSettings() {
         const settings = {
             length: document.getElementById('length').value,
@@ -423,30 +521,26 @@
             useNumbers: document.getElementById('useNumbers').checked,
             useSymbols: document.getElementById('useSymbols').checked,
             excludeAmbiguous: document.getElementById('excludeAmbiguous').checked,
-            useHyphens: document.getElementById('useHyphens').checked
         };
-        localStorage.setItem('pwdSettings', JSON.stringify(settings));
+        localStorage.setItem('glowPassSettings', JSON.stringify(settings));
     }
 
     function loadSettings() {
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'dark') {
             document.body.setAttribute('data-theme', 'dark');
-            document.getElementById('themeBtn').innerText = '☀️ ライト';
+            document.getElementById('themeIcon').innerHTML = svgSun;
         }
 
-        const saved = localStorage.getItem('pwdSettings');
+        const saved = localStorage.getItem('glowPassSettings');
         if (saved) {
             const settings = JSON.parse(saved);
             document.getElementById('length').value = settings.length;
+            document.getElementById('lengthVal').innerText = settings.length;
             document.getElementById('useUpper').checked = settings.useUpper;
             document.getElementById('useNumbers').checked = settings.useNumbers;
             document.getElementById('useSymbols').checked = settings.useSymbols;
             if (settings.excludeAmbiguous !== undefined) document.getElementById('excludeAmbiguous').checked = settings.excludeAmbiguous;
-            if (settings.useHyphens !== undefined) document.getElementById('useHyphens').checked = settings.useHyphens;
         }
     }
-</script>
-
-</body>
-</html>
+</script></body></html>
