@@ -174,7 +174,6 @@
         
         label { cursor: pointer; font-size: 0.9rem; font-weight: 500; color: var(--text-color); opacity: 0.9; }
         
-        /* スライダー＋微調整ボタンのUI */
         .length-control-wrapper { display: flex; align-items: center; gap: 6px; width: 65%; }
         
         .step-btn {
@@ -227,7 +226,6 @@
 
         #lengthVal { font-weight: 700; font-size: 0.95rem; color: #a044ff; min-width: 28px; text-align: right;}
 
-        /* サブオプション（記号モード選択） */
         .sub-setting {
             width: 100%;
             margin-top: 8px;
@@ -324,7 +322,6 @@
     </div>
 
     <div class="settings">
-        <!-- 文字数（スライダー ＋ 微調整ボタン） -->
         <div class="setting-item">
             <label for="length">文字数 (4-128)</label>
             <div class="length-control-wrapper">
@@ -343,13 +340,11 @@
             <label class="switch"><input type="checkbox" id="useNumbers" checked><span class="slider-round"></span></label>
         </div>
         
-        <!-- 記号設定（トグル ＋ モード切替） -->
         <div class="setting-item">
             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                 <label for="useSymbols">記号を使う</label>
                 <label class="switch"><input type="checkbox" id="useSymbols"><span class="slider-round"></span></label>
             </div>
-            <!-- 記号ON時のみ機能するタイプ選択 -->
             <div class="sub-setting" id="symbolTypeContainer" style="display: none;">
                 <label for="symbolMode" style="font-size: 0.8rem; opacity: 0.8;">記号の種類</label>
                 <select id="symbolMode" class="symbol-select">
@@ -382,6 +377,7 @@
     const svgSun = '<path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>';
 
     let clearClipboardTimer = null;
+    let pendingFocusListener = null;
 
     document.addEventListener('DOMContentLoaded', () => {
         loadSettings();
@@ -391,7 +387,6 @@
         document.querySelector('.copy-btn').addEventListener('click', copyPassword);
         document.querySelector('.generate-btn').addEventListener('click', generatePassword);
 
-        // 文字数コントロール（スライダー ＋ ボタン）
         const lengthSlider = document.getElementById('length');
         const lengthValDisplay = document.getElementById('lengthVal');
         const decBtn = document.getElementById('decBtn');
@@ -408,7 +403,6 @@
         decBtn.addEventListener('click', () => updateLength(parseInt(lengthSlider.value) - 1));
         incBtn.addEventListener('click', () => updateLength(parseInt(lengthSlider.value) + 1));
 
-        // 記号トグルの切り替えでサブメニューの表示制御
         const useSymbolsToggle = document.getElementById('useSymbols');
         const symbolTypeContainer = document.getElementById('symbolTypeContainer');
 
@@ -459,6 +453,10 @@
             clearTimeout(clearClipboardTimer);
             clearClipboardTimer = null;
         }
+        if (pendingFocusListener) {
+            window.removeEventListener('focus', pendingFocusListener);
+            pendingFocusListener = null;
+        }
 
         const length = parseInt(document.getElementById('length').value);
         const useUpper = document.getElementById('useUpper').checked;
@@ -472,9 +470,6 @@
         const upperChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         const numberChars = '0123456789';
         
-        // 記号セットの分岐
-        // standard: 26種 (従来)
-        // strict  : 10種 (!@#$%*_-+=) 古いWebサイトでもトラブルを起こさないセット
         const symbolChars = symbolMode === 'strict' 
             ? '!@#$%*_-+=' 
             : '!@#$%^&*()_+-=[]{}|;:,.<>?';
@@ -524,7 +519,6 @@
             passwordArray.push(allowedChars[getSecureRandomInt(allowedChars.length)]);
         }
 
-        // Fisher-Yates
         for (let i = passwordArray.length - 1; i > 0; i--) {
             const j = getSecureRandomInt(i + 1);
             [passwordArray[i], passwordArray[j]] = [passwordArray[j], passwordArray[i]];
@@ -582,12 +576,24 @@
         text.style.color = color;
     }
 
+    function executeClearClipboard() {
+        navigator.clipboard.writeText('').then(() => {
+            console.log('Clipboard cleared for security.');
+        }).catch(err => console.error('Failed to clear clipboard:', err));
+    }
+
     function copyPassword() {
         const password = document.getElementById('passwordDisplay').innerText;
         if (!password) return;
 
+        // タイマーとフォーカスリスナーのリセット
         if (clearClipboardTimer) {
             clearTimeout(clearClipboardTimer);
+            clearClipboardTimer = null;
+        }
+        if (pendingFocusListener) {
+            window.removeEventListener('focus', pendingFocusListener);
+            pendingFocusListener = null;
         }
 
         navigator.clipboard.writeText(password).then(() => {
@@ -596,9 +602,17 @@
             setTimeout(() => msg.classList.remove('show'), 3500);
 
             clearClipboardTimer = setTimeout(() => {
-                navigator.clipboard.writeText('').then(() => {
-                    console.log('Clipboard cleared for security.');
-                }).catch(err => console.error(err));
+                // 60秒経過時のフォーカス状態に応じて処理を分岐
+                if (document.hasFocus()) {
+                    executeClearClipboard();
+                } else {
+                    // 非アクティブ時はフォーカス復帰時のワンタイムイベントとして登録
+                    pendingFocusListener = () => {
+                        executeClearClipboard();
+                        pendingFocusListener = null;
+                    };
+                    window.addEventListener('focus', pendingFocusListener, { once: true });
+                }
                 clearClipboardTimer = null;
             }, 60000);
         });
@@ -637,7 +651,6 @@
             if (settings.useHyphens !== undefined) document.getElementById('useHyphens').checked = settings.useHyphens;
         }
 
-        // サブメニューの初期表示判定
         if (document.getElementById('useSymbols').checked) {
             document.getElementById('symbolTypeContainer').style.display = 'flex';
         }
