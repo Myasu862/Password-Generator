@@ -156,7 +156,13 @@
             margin-bottom: 8px;
         }
         .strength-bar-fill { height: 100%; width: 0%; transition: width 0.5s ease-out, background-color 0.3s; }
-        .strength-text { font-size: 0.8rem; text-align: right; font-weight: 600; opacity: 0.75; letter-spacing: 0.5px;}
+        .strength-text { 
+            font-size: 0.8rem; 
+            text-align: right; 
+            font-weight: 700; 
+            letter-spacing: 0.5px;
+            transition: color 0.3s ease;
+        }
 
         .settings { display: grid; gap: 8px; margin-bottom: 2rem; }
         .setting-item {
@@ -557,7 +563,7 @@
         let percent = 25;
 
         if (entropy > 120) {
-            color = '#a044ff';
+            color = '#c084fc'; /* 視認性の高いネオンパープル */
             label = '最強';
             percent = 100;
         } else if (entropy > 80) {
@@ -586,7 +592,6 @@
         const password = document.getElementById('passwordDisplay').innerText;
         if (!password) return;
 
-        // タイマーとフォーカスリスナーのリセット
         if (clearClipboardTimer) {
             clearTimeout(clearClipboardTimer);
             clearClipboardTimer = null;
@@ -602,11 +607,9 @@
             setTimeout(() => msg.classList.remove('show'), 3500);
 
             clearClipboardTimer = setTimeout(() => {
-                // 60秒経過時のフォーカス状態に応じて処理を分岐
                 if (document.hasFocus()) {
                     executeClearClipboard();
                 } else {
-                    // 非アクティブ時はフォーカス復帰時のワンタイムイベントとして登録
                     pendingFocusListener = () => {
                         executeClearClipboard();
                         pendingFocusListener = null;
