@@ -4,13 +4,11 @@
     <title>GlowPass | Secure Generator</title>
     <style>
         :root {
-            /* Light Theme Colors (Glassmorphism based) */
             --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             --container-bg: rgba(255, 255, 255, 0.65);
             --glass-border: rgba(255, 255, 255, 0.4);
             --text-color: #1a1d21;
             
-            /* Neon Gradient Accent */
             --accent-gradient: linear-gradient(135deg, #007bff 0%, #a044ff 100%);
             --accent-glow: 0 4px 15px rgba(111, 66, 193, 0.35);
             
@@ -19,10 +17,10 @@
             --shadow: 0 15px 35px rgba(0,0,0,0.1);
             --slider-track: #dee2e6;
             --icon-color: #6c757d;
+            --input-bg: rgba(255, 255, 255, 0.8);
         }
 
         [data-theme="dark"] {
-            /* Dark Theme Colors */
             --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             --container-bg: rgba(30, 41, 59, 0.7);
             --glass-border: rgba(255, 255, 255, 0.08);
@@ -33,6 +31,7 @@
             --shadow: 0 15px 35px rgba(0,0,0,0.3);
             --slider-track: #475569;
             --icon-color: #94a3b8;
+            --input-bg: rgba(15, 23, 42, 0.8);
         }
 
         body {
@@ -169,12 +168,35 @@
             border-radius: 10px;
             border: 1px solid transparent;
             transition: all 0.2s;
+            flex-wrap: wrap;
         }
         .setting-item:hover { border-color: var(--border-color); background: rgba(128,128,128, 0.08); }
         
         label { cursor: pointer; font-size: 0.9rem; font-weight: 500; color: var(--text-color); opacity: 0.9; }
         
-        .length-slider-wrapper { display: flex; align-items: center; gap: 12px; width: 55%; }
+        /* スライダー＋微調整ボタンのUI */
+        .length-control-wrapper { display: flex; align-items: center; gap: 6px; width: 65%; }
+        
+        .step-btn {
+            background: rgba(128,128,128,0.15);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: 6px;
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+        .step-btn:hover { background: var(--accent-gradient); color: #fff; border-color: transparent; }
+        .step-btn:active { transform: scale(0.92); }
+
         input[type="range"] {
             -webkit-appearance: none;
             width: 100%;
@@ -203,7 +225,29 @@
             transform: scale(1.1);
         }
 
-        #lengthVal { font-weight: 700; font-size: 1rem; color: #a044ff; min-width: 32px; text-align: right;}
+        #lengthVal { font-weight: 700; font-size: 0.95rem; color: #a044ff; min-width: 28px; text-align: right;}
+
+        /* サブオプション（記号モード選択） */
+        .sub-setting {
+            width: 100%;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .symbol-select {
+            background: var(--input-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+        }
 
         .switch {
             position: relative;
@@ -280,11 +324,13 @@
     </div>
 
     <div class="settings">
-        <!-- 範囲を 4〜128 に復元 -->
+        <!-- 文字数（スライダー ＋ 微調整ボタン） -->
         <div class="setting-item">
             <label for="length">文字数 (4-128)</label>
-            <div class="length-slider-wrapper">
+            <div class="length-control-wrapper">
+                <button class="step-btn" id="decBtn" title="-1文字">−</button>
                 <input type="range" id="length" value="16" min="4" max="128" step="1">
+                <button class="step-btn" id="incBtn" title="+1文字">＋</button>
                 <span id="lengthVal">16</span>
             </div>
         </div>
@@ -296,15 +342,27 @@
             <label for="useNumbers">数字 (0-9)</label>
             <label class="switch"><input type="checkbox" id="useNumbers" checked><span class="slider-round"></span></label>
         </div>
+        
+        <!-- 記号設定（トグル ＋ モード切替） -->
         <div class="setting-item">
-            <label for="useSymbols">記号 (!-#$)</label>
-            <label class="switch"><input type="checkbox" id="useSymbols"><span class="slider-round"></span></label>
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <label for="useSymbols">記号を使う</label>
+                <label class="switch"><input type="checkbox" id="useSymbols"><span class="slider-round"></span></label>
+            </div>
+            <!-- 記号ON時のみ機能するタイプ選択 -->
+            <div class="sub-setting" id="symbolTypeContainer" style="display: none;">
+                <label for="symbolMode" style="font-size: 0.8rem; opacity: 0.8;">記号の種類</label>
+                <select id="symbolMode" class="symbol-select">
+                    <option value="standard">標準 (26種)</option>
+                    <option value="strict">高互換 (10種)</option>
+                </select>
+            </div>
         </div>
+
         <div class="setting-item">
             <label for="excludeAmbiguous" title="1, l, I, 0, Oなど類似文字を除外">紛らわしい文字を除く</label>
             <label class="switch"><input type="checkbox" id="excludeAmbiguous"><span class="slider-round"></span></label>
         </div>
-        <!-- 復元：ハイフン機能 -->
         <div class="setting-item">
             <label for="useHyphens" title="4文字ごとにハイフンを挿入">読みやすく区切る ( - )</label>
             <label class="switch"><input type="checkbox" id="useHyphens"><span class="slider-round"></span></label>
@@ -333,14 +391,37 @@
         document.querySelector('.copy-btn').addEventListener('click', copyPassword);
         document.querySelector('.generate-btn').addEventListener('click', generatePassword);
 
+        // 文字数コントロール（スライダー ＋ ボタン）
         const lengthSlider = document.getElementById('length');
         const lengthValDisplay = document.getElementById('lengthVal');
-        lengthSlider.addEventListener('input', (e) => {
-            lengthValDisplay.innerText = e.target.value;
+        const decBtn = document.getElementById('decBtn');
+        const incBtn = document.getElementById('incBtn');
+
+        const updateLength = (newVal) => {
+            const val = Math.max(4, Math.min(128, newVal));
+            lengthSlider.value = val;
+            lengthValDisplay.innerText = val;
+            saveSettings();
+        };
+
+        lengthSlider.addEventListener('input', (e) => updateLength(e.target.value));
+        decBtn.addEventListener('click', () => updateLength(parseInt(lengthSlider.value) - 1));
+        incBtn.addEventListener('click', () => updateLength(parseInt(lengthSlider.value) + 1));
+
+        // 記号トグルの切り替えでサブメニューの表示制御
+        const useSymbolsToggle = document.getElementById('useSymbols');
+        const symbolTypeContainer = document.getElementById('symbolTypeContainer');
+
+        const toggleSymbolSubMenu = () => {
+            symbolTypeContainer.style.display = useSymbolsToggle.checked ? 'flex' : 'none';
+        };
+
+        useSymbolsToggle.addEventListener('change', () => {
+            toggleSymbolSubMenu();
             saveSettings();
         });
 
-        const settingIds = ['useUpper', 'useNumbers', 'useSymbols', 'excludeAmbiguous', 'useHyphens'];
+        const settingIds = ['useUpper', 'useNumbers', 'symbolMode', 'excludeAmbiguous', 'useHyphens'];
         settingIds.forEach(id => {
             document.getElementById(id).addEventListener('change', saveSettings);
         });
@@ -383,13 +464,21 @@
         const useUpper = document.getElementById('useUpper').checked;
         const useNumbers = document.getElementById('useNumbers').checked;
         const useSymbols = document.getElementById('useSymbols').checked;
+        const symbolMode = document.getElementById('symbolMode').value;
         const excludeAmbiguous = document.getElementById('excludeAmbiguous').checked;
         const useHyphens = document.getElementById('useHyphens').checked;
 
         const lowerChars = 'abcdefghijklmnopqrstuvwxyz';
         const upperChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         const numberChars = '0123456789';
-        const symbolChars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+        
+        // 記号セットの分岐
+        // standard: 26種 (従来)
+        // strict  : 10種 (!@#$%*_-+=) 古いWebサイトでもトラブルを起こさないセット
+        const symbolChars = symbolMode === 'strict' 
+            ? '!@#$%*_-+=' 
+            : '!@#$%^&*()_+-=[]{}|;:,.<>?';
+
         const ambiguous = 'Il10OozZ2|'; 
 
         const filterChars = (chars) => excludeAmbiguous ? chars.split('').filter(c => !ambiguous.includes(c)).join('') : chars;
@@ -415,7 +504,6 @@
 
         if (allowedChars === '') allowedChars = lowerChars;
 
-        // ハイフン挿入時の実質ランダム文字数を計算
         let actualLength = length;
         if (useHyphens) {
             let hyphenCount = 0;
@@ -436,13 +524,12 @@
             passwordArray.push(allowedChars[getSecureRandomInt(allowedChars.length)]);
         }
 
-        // Fisher-Yates シャッフル
+        // Fisher-Yates
         for (let i = passwordArray.length - 1; i > 0; i--) {
             const j = getSecureRandomInt(i + 1);
             [passwordArray[i], passwordArray[j]] = [passwordArray[j], passwordArray[i]];
         }
 
-        // ハイフン組み立て
         let password = "";
         if (useHyphens) {
             let charIndex = 0;
@@ -463,7 +550,6 @@
         void display.offsetWidth;
         display.classList.add('generated');
 
-        // エントロピー計算（固定記号のハイフンを除いた実質文字数で計算）
         evaluateStrength(actualLength, allowedChars.length);
     }
 
@@ -509,7 +595,6 @@
             msg.classList.add('show');
             setTimeout(() => msg.classList.remove('show'), 3500);
 
-            // 60秒後に自動消去
             clearClipboardTimer = setTimeout(() => {
                 navigator.clipboard.writeText('').then(() => {
                     console.log('Clipboard cleared for security.');
@@ -525,6 +610,7 @@
             useUpper: document.getElementById('useUpper').checked,
             useNumbers: document.getElementById('useNumbers').checked,
             useSymbols: document.getElementById('useSymbols').checked,
+            symbolMode: document.getElementById('symbolMode').value,
             excludeAmbiguous: document.getElementById('excludeAmbiguous').checked,
             useHyphens: document.getElementById('useHyphens').checked
         };
@@ -546,8 +632,14 @@
             document.getElementById('useUpper').checked = settings.useUpper;
             document.getElementById('useNumbers').checked = settings.useNumbers;
             document.getElementById('useSymbols').checked = settings.useSymbols;
+            if (settings.symbolMode) document.getElementById('symbolMode').value = settings.symbolMode;
             if (settings.excludeAmbiguous !== undefined) document.getElementById('excludeAmbiguous').checked = settings.excludeAmbiguous;
             if (settings.useHyphens !== undefined) document.getElementById('useHyphens').checked = settings.useHyphens;
+        }
+
+        // サブメニューの初期表示判定
+        if (document.getElementById('useSymbols').checked) {
+            document.getElementById('symbolTypeContainer').style.display = 'flex';
         }
     }
 </script></body></html>
